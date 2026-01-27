@@ -12,7 +12,7 @@ export default function IncomeCard({
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="bg-white border border-gray-100 rounded-xl p-6">
+    <section className="bg-blue-50 border border-blue-200 rounded-xl p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
         <div>
