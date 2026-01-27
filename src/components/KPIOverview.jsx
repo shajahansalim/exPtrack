@@ -9,14 +9,20 @@ function Card({ title, value, sub, tone = "neutral" }) {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5">
+    <div
+  className="
+    rounded-2xl p-5
+    bg-gray-100
+    shadow-[-8px_-8px_16px_#ffffff,8px_8px_16px_#d1d5db]
+  "
+>
       <p className="text-sm text-gray-500 mb-1">{title}</p>
       <p className="text-2xl font-semibold mb-1">
         {value}
       </p>
       {sub && (
         <span
-          className={`inline-block text-xs px-2 py-1 rounded-lg ${tones[tone]}`}
+          className={`inline-block text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 ${tones[tone]}`}
         >
           {sub}
         </span>

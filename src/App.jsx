@@ -13,7 +13,7 @@ export default function App() {
   const wants = useWants();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center">
+    <div className="min-h-screen bg-gray-100 flex justify-center">
       <div className="w-full max-w-7xl px-8 py-10 space-y-10">
         {/* ================= HEADER ================= */}
         <header className="space-y-1">
@@ -58,6 +58,7 @@ export default function App() {
           income={income.income}
           onUpdate={income.updateIncome}
           onAdd={income.addIncome}
+          onDelete={income.deleteIncome}
           totalExpected={income.totalExpected}
           totalActual={income.totalActual}
         />

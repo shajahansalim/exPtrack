@@ -8,7 +8,8 @@ export default function WantsCard({
   totalActual,
 }) {
   return (
-    <section className="bg-white rounded-2xl border p-6 h-full">
+    <section className="bg-gray-100 rounded-3xl p-6 h-full
+    shadow-[-10px_-10px_20px_#ffffff,10px_10px_20px_#d1d5db]">
       <div className="flex justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold">Wants</h2>

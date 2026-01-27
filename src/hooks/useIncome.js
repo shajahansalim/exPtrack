@@ -19,15 +19,21 @@ export function useIncome() {
   }, [income]);
 
   const updateIncome = (id, field, value) => {
-    setIncome((prev) =>
-      prev.map((row) =>
-        row.id === id
-          ? { ...row, [field]: toNumber(value) }
-          : row
-      )
-    );
-  };
+  setIncome((prev) =>
+    prev.map((i) => {
+      if (i.id !== id) return i;
 
+      if (field === "name") {
+        return { ...i, name: value };
+      }
+
+      return { ...i, [field]: Number(value || 0) };
+    })
+  );
+};
+  const deleteIncome = (id) => {
+  setIncome((prev) => prev.filter((i) => i.id !== id));
+};
   const addIncome = () => {
     setIncome((prev) => [
       ...prev,
@@ -56,5 +62,6 @@ export function useIncome() {
     addIncome,
     totalExpected,
     totalActual,
+    deleteIncome,
   };
 }

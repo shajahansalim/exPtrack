@@ -9,7 +9,8 @@ export default function NeedsCard({
   totalActual,
 }) {
   return (
-    <section className="bg-white rounded-2xl border p-6 h-full">
+    <section className="bg-gray-100 rounded-3xl p-6 h-full
+    shadow-[-10px_-10px_20px_#ffffff,10px_10px_20px_#d1d5db]">
       <div className="flex justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold">Needs</h2>
@@ -30,7 +31,7 @@ export default function NeedsCard({
         {needs.map((row) => {
           const diff =
             toNumber(row.budget) - toNumber(row.actual);
-
+          
           return (
             <div
               key={row.id}
@@ -43,10 +44,10 @@ export default function NeedsCard({
                   onUpdate(row.id, "name", e.target.value)
                 }
                 placeholder="Bill name"
-                className="w-1/3 text-sm px-2 py-1 rounded-md
-                           border border-transparent
-                           hover:border-gray-300
-                           focus:border-gray-400 focus:outline-none"
+                className=" w-1/3 text-sm px-3 py-2 rounded-xl
+  bg-gray-100
+  shadow-[inset_-3px_-3px_6px_#ffffff,inset_3px_3px_6px_#d1d5db]
+  focus:outline-none"
               />
 
               {/* Numbers */}
