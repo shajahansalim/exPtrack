@@ -1,93 +1,111 @@
-import { formatINR, toNumber } from "../utils/money";
+import { useState } from "react";
+import AddItemModal from "./AddItemModal";
+import { formatINR } from "../utils/money";
 
 export default function WantsCard({
   wants,
-  onUpdate,
-  onAdd,
-  onDelete,
+  addWant,
+  deleteWant,
+  totalBudget,
   totalActual,
 }) {
+  const [showModal, setShowModal] = useState(false);
+
   return (
-    <section className="bg-gray-100 rounded-3xl p-6 h-full
-    shadow-[-10px_-10px_20px_#ffffff,10px_10px_20px_#d1d5db]">
-      <div className="flex justify-between mb-4">
+    <section className="bg-white border border-gray-200 rounded-xl p-6">
+      {/* Header */}
+      <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-lg font-semibold">Wants</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="font-semibold">Wants</h2>
+          <p className="text-sm text-slate-500 mt-1">
             Optional & lifestyle spending
           </p>
         </div>
 
         <button
-          onClick={onAdd}
-          className="px-3 py-1.5 rounded-lg text-sm border hover:bg-gray-50"
+          onClick={() => setShowModal(true)}
+          className="text-sm font-medium px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
         >
           + Add expense
         </button>
       </div>
 
-      <div className="space-y-2">
-        {wants.map((row) => {
-          const diff =
-            toNumber(row.budget) - toNumber(row.actual);
+      {/* Table */}
+      {wants.length > 0 && (
+        <div className="mt-6">
+          <div className="grid grid-cols-5 text-xs font-medium text-slate-500 mb-2">
+            <span>Name</span>
+            <span className="text-right">Budget</span>
+            <span className="text-right">Actual</span>
+            <span className="text-right">Variance</span>
+            <span className="text-right">Action</span>
+          </div>
 
-          return (
-            <div
-              key={row.id}
-              className="group flex items-center justify-between gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"
-            >
-              <input
-                value={row.name}
-                onChange={(e) =>
-                  onUpdate(row.id, "name", e.target.value)
-                }
-                placeholder="Expense"
-                className="w-1/3 text-sm px-2 py-1 rounded-md
-                           border border-transparent
-                           hover:border-gray-300
-                           focus:border-gray-400 focus:outline-none"
-              />
+          {wants.map((item) => {
+            const diff = item.actual - item.budget;
+            const isOver = diff > 0;
 
-              <input
-                type="number"
-                value={row.actual}
-                onChange={(e) =>
-                  onUpdate(row.id, "actual", e.target.value)
-                }
-                className="w-20 text-right text-sm px-2 py-1 rounded-md
-                           border border-transparent
-                           hover:border-gray-300
-                           focus:border-gray-400 focus:outline-none"
-              />
-
-              <span
-                className={`text-xs ${
-                  diff < 0
-                    ? "text-red-600"
-                    : "text-gray-400"
-                }`}
+            return (
+              <div
+                key={item.id}
+                className={`grid grid-cols-5 items-center py-3 border-b border-gray-100 ${isOver ? "bg-red-50" : ""
+                  }`}
               >
-                {formatINR(diff)}
-              </span>
+                <span className="text-sm">{item.name}</span>
 
-              <button
-                onClick={() => onDelete(row.id)}
-                className="opacity-0 group-hover:opacity-100
-                           text-gray-400 hover:text-red-600 transition"
-              >
-                −
-              </button>
-            </div>
-          );
-        })}
-      </div>
+                <span className="text-sm text-right">
+                  {formatINR(item.budget)}
+                </span>
 
-      <div className="mt-4 pt-3 border-t text-sm flex justify-between">
-        <span className="text-gray-500">Total</span>
-        <span className="font-medium">
-          {formatINR(totalActual)}
-        </span>
-      </div>
+                <span className="text-sm text-right">
+                  {formatINR(item.actual)}
+                </span>
+
+                <span
+                  className={`text-sm text-right font-medium ${isOver ? "text-red-600" : "text-green-600"
+                    }`}
+                >
+                  {formatINR(diff)}
+                </span>
+
+                <button
+                  onClick={() => deleteWant(item.id)}
+                  className="text-sm text-red-600 text-right hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {wants.length === 0 && (
+        <p className="mt-6 text-sm text-slate-500">
+          No discretionary spending added yet. Track food, shopping,
+          subscriptions, or entertainment.
+        </p>
+      )}
+
+      {/* Footer */}
+      {wants.length > 0 && (
+        <div className="mt-6 pt-4 border-t flex justify-between text-sm">
+          <span className="text-slate-500">Total</span>
+          <span className="font-medium">
+            {formatINR(totalActual)} / {formatINR(totalBudget)}
+          </span>
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal ? (
+        <AddItemModal
+          title="Add expenses"
+          onClose={() => setShowModal(false)}
+          onSave={addWant}
+        />
+      ) : null}
     </section>
   );
 }

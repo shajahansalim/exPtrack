@@ -10,19 +10,23 @@ function Card({ title, value, sub, tone = "neutral" }) {
 
   return (
     <div
-  className="
-    rounded-2xl p-5
-    bg-gray-100
-    shadow-[-8px_-8px_16px_#ffffff,8px_8px_16px_#d1d5db]
+      className="
+     bg-white
+  border border-gray-200
+  rounded-xl
+  p-5
   "
->
+    >
       <p className="text-sm text-gray-500 mb-1">{title}</p>
-      <p className="text-2xl font-semibold mb-1">
+      <p className="text-2xl font-semibold text-slate-900">
         {value}
       </p>
       {sub && (
         <span
-          className={`inline-block text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 ${tones[tone]}`}
+          className={`text-xs font-medium
+  px-2.5 py-1
+  rounded-md
+  bg-green-50 text-green-700 ${tones[tone]}`}
         >
           {sub}
         </span>
@@ -43,9 +47,9 @@ export default function KPIOverview({
   const allocationPct =
     totalIncome > 0
       ? Math.round(
-          ((needsActual + wantsActual) / totalIncome) *
-            100
-        )
+        ((needsActual + wantsActual) / totalIncome) *
+        100
+      )
       : 0;
 
   return (
@@ -90,15 +94,15 @@ export default function KPIOverview({
           allocationPct < 80
             ? "Healthy"
             : allocationPct < 100
-            ? "Tight"
-            : "Overbooked"
+              ? "Tight"
+              : "Overbooked"
         }
         tone={
           allocationPct < 80
             ? "positive"
             : allocationPct < 100
-            ? "info"
-            : "negative"
+              ? "info"
+              : "negative"
         }
       />
     </section>

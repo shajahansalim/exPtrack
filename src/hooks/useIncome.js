@@ -18,50 +18,56 @@ export function useIncome() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(income));
   }, [income]);
 
-  const updateIncome = (id, field, value) => {
-  setIncome((prev) =>
-    prev.map((i) => {
-      if (i.id !== id) return i;
-
-      if (field === "name") {
-        return { ...i, name: value };
-      }
-
-      return { ...i, [field]: Number(value || 0) };
-    })
-  );
-};
-  const deleteIncome = (id) => {
-  setIncome((prev) => prev.filter((i) => i.id !== id));
-};
-  const addIncome = () => {
+  // -------- ADD (from modal or form later) --------
+  const addIncome = (item) => {
     setIncome((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
-        name: "",
-        expected: 0,
-        actual: 0,
+        id: item.id ?? crypto.randomUUID(),
+        name: item.name,
+        expected: toNumber(item.expected),
+        actual: toNumber(item.actual),
       },
     ]);
   };
 
+  // -------- UPDATE --------
+  const updateIncome = (id, field, value) => {
+    setIncome((prev) =>
+      prev.map((i) => {
+        if (i.id !== id) return i;
+
+        if (field === "name") {
+          return { ...i, name: value };
+        }
+
+        return { ...i, [field]: toNumber(value) };
+      })
+    );
+  };
+
+  // -------- DELETE --------
+  const deleteIncome = (id) => {
+    setIncome((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  // -------- TOTALS --------
   const totalExpected = income.reduce(
-    (s, r) => s + toNumber(r.expected),
+    (sum, i) => sum + toNumber(i.expected),
     0
   );
 
   const totalActual = income.reduce(
-    (s, r) => s + toNumber(r.actual),
+    (sum, i) => sum + toNumber(i.actual),
     0
   );
 
   return {
     income,
-    updateIncome,
     addIncome,
+    updateIncome,
+    deleteIncome,
     totalExpected,
     totalActual,
-    deleteIncome,
   };
 }

@@ -12,8 +12,7 @@ export default function IncomeCard({
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="bg-gray-100 rounded-3xl p-6
-    shadow-[-6px_-6px_12px_#ffffff,6px_6px_12px_#d1d5db]">
+    <section className="bg-white border border-gray-100 rounded-xl p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
         <div>
@@ -45,11 +44,10 @@ export default function IncomeCard({
           </div>
 
           <span
-            className={`px-3 py-1 rounded-md text-xs ${
-              totalActual >= totalExpected
-                ? "bg-green-50 text-green-700"
-                : "bg-yellow-50 text-yellow-700"
-            }`}
+            className={`px-3 py-1 rounded-md text-xs ${totalActual >= totalExpected
+              ? "bg-green-50 text-green-700"
+              : "bg-yellow-50 text-yellow-700"
+              }`}
           >
             {totalActual >= totalExpected
               ? "On track"
@@ -130,11 +128,10 @@ export default function IncomeCard({
                   {/* Diff + Delete */}
                   <div className="col-span-2 flex justify-end items-center gap-2">
                     <span
-                      className={`text-xs px-2 py-1 rounded-md ${
-                        diff >= 0
-                          ? "bg-green-50 text-green-700"
-                          : "bg-red-50 text-red-700"
-                      }`}
+                      className={`text-xs px-2 py-1 rounded-md ${diff >= 0
+                        ? "bg-green-50 text-green-700"
+                        : "bg-red-50 text-red-700"
+                        }`}
                     >
                       {formatINR(diff)}
                     </span>
