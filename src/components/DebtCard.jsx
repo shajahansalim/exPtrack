@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AddItemModal from "./AddItemModal";
+import DebtModal from "./DebtModal";
 import { formatINR } from "../utils/money";
 
 export default function DebtCard({
@@ -95,20 +95,19 @@ export default function DebtCard({
             )}
 
             {/* Modal */}
+
+
             {showModal && (
-                <AddItemModal
-                    title="Add debt"
+                <DebtModal
                     onClose={() => setShowModal(false)}
                     onSave={(data) => {
-                        addDebt({
-                            name: data.name,
-                            balance: data.budget,
-                            paid: data.actual,
-                        });
+                        addDebt(data);
                         setShowModal(false);
                     }}
                 />
             )}
+
+
         </section>
     );
 }

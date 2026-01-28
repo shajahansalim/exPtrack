@@ -1,26 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { toNumber } from "../utils/money";
 
-const STORAGE_KEY = "debt_v1";
+export function useDebt(monthKey) {
+    const STORAGE_KEY = `debt_${monthKey}`;
 
-const DEFAULT_DEBT = [
-    { id: 1, name: "Gold Loan", balance: 0, paid: 0 },
-    { id: 2, name: "Personal Loan", balance: 0, paid: 0 },
-];
-
-export function useDebt() {
     const [debt, setDebt] = useState(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : DEFAULT_DEBT;
+        return saved ? JSON.parse(saved) : [];
     });
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(debt));
-    }, [debt]);
+    }, [debt, STORAGE_KEY]);
 
-    const addDebt = (item) => {
-        setDebt((prev) => [
-            ...prev,
+    const addDebt = (item) =>
+        setDebt((p) => [
+            ...p,
             {
                 id: crypto.randomUUID(),
                 name: item.name,
@@ -28,41 +23,25 @@ export function useDebt() {
                 paid: toNumber(item.paid),
             },
         ]);
-    };
 
-    const updateDebt = (id, field, value) => {
-        setDebt((prev) =>
-            prev.map((d) =>
+    const updateDebt = (id, field, value) =>
+        setDebt((p) =>
+            p.map((d) =>
                 d.id === id
-                    ? {
-                        ...d,
-                        [field]: field === "name" ? value : toNumber(value),
-                    }
+                    ? { ...d, [field]: field === "name" ? value : toNumber(value) }
                     : d
             )
         );
-    };
 
-    const deleteDebt = (id) => {
-        setDebt((prev) => prev.filter((d) => d.id !== id));
-    };
-
-    const totalBalance = debt.reduce(
-        (s, d) => s + toNumber(d.balance),
-        0
-    );
-
-    const totalPaid = debt.reduce(
-        (s, d) => s + toNumber(d.paid),
-        0
-    );
+    const deleteDebt = (id) =>
+        setDebt((p) => p.filter((d) => d.id !== id));
 
     return {
         debt,
         addDebt,
         updateDebt,
         deleteDebt,
-        totalBalance,
-        totalPaid,
+        totalBalance: debt.reduce((s, d) => s + toNumber(d.balance), 0),
+        totalPaid: debt.reduce((s, d) => s + toNumber(d.paid), 0),
     };
 }

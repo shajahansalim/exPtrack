@@ -5,8 +5,8 @@ import WantsCard from "./components/WantsCard";
 import IncomeCard from "./components/IncomeCard";
 import SavingsCard from "./components/SavingsCard";
 import DebtCard from "./components/DebtCard";
-import { exportPdf } from "./utils/exportPdf";
 import ReportView from "./components/ReportView";
+import { exportPdf } from "./utils/exportPdf";
 
 import { useIncome } from "./hooks/useIncome";
 import { useNeeds } from "./hooks/useNeeds";
@@ -15,29 +15,26 @@ import { useSavings } from "./hooks/useSavings";
 import { useDebt } from "./hooks/useDebt";
 
 export default function App() {
-
   // ================= MONTH SELECTOR =================
   const MONTHS = [
     "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "July", "August", "September", "October", "November", "December",
   ];
+
   const YEAR = new Date().getFullYear();
   const [monthIndex, setMonthIndex] = useState(0); // January
 
-  const prevMonth = () => {
+  const monthKey = `${YEAR}-${String(monthIndex + 1).padStart(2, "0")}`;
+
+  const prevMonth = () =>
     setMonthIndex((i) => (i === 0 ? 11 : i - 1));
-  };
 
-  const nextMonth = () => {
+  const nextMonth = () =>
     setMonthIndex((i) => (i === 11 ? 0 : i + 1));
-  };
 
+  // ================= HOOKS (MONTH-SCOPED) =================
+  const income = useIncome(monthKey);
 
-
-  // ================= INCOME =================
-  const income = useIncome();
-
-  // ================= NEEDS =================
   const {
     needs,
     addNeed,
@@ -45,9 +42,8 @@ export default function App() {
     deleteNeed,
     totalBudget: needsBudget,
     totalActual: needsActual,
-  } = useNeeds();
+  } = useNeeds(monthKey);
 
-  // ================= WANTS =================
   const {
     wants,
     addWant,
@@ -55,18 +51,16 @@ export default function App() {
     deleteWant,
     totalBudget: wantsBudget,
     totalActual: wantsActual,
-  } = useWants();
+  } = useWants(monthKey);
 
-  // ================= SAVINGS =================
   const {
     savings,
     addSaving,
     updateSaving,
     deleteSaving,
     totalSaved,
-  } = useSavings();
+  } = useSavings(monthKey);
 
-  // ================= DEBT =================
   const {
     debt,
     addDebt,
@@ -74,111 +68,115 @@ export default function App() {
     deleteDebt,
     totalBalance,
     totalPaid,
-  } = useDebt();
+  } = useDebt(monthKey);
 
+  // ================= CALCULATIONS =================
+  const totalIncome = income.totalActual || 0;
+
+  /**
+   * IMPORTANT LOGIC (as requested):
+   * Available balance MUST include savings spend
+   * Debt affects balance ONLY via paid amount (monthly cash flow)
+   */
   const totalSpent =
     needsActual +
     wantsActual +
-    totalSaved +
-    totalPaid;
+    totalSaved +   // savings treated as spending
+    totalPaid;     // debt EMI / payment only
 
-
-
-  // ================= DERIVED KPI VALUES =================
-  const totalIncome = income.totalActual || 0;
   const availableBalance = totalIncome - totalSpent;
 
-  const totalSavings = totalSaved || 0;
   const outstandingDebt = Math.max(totalBalance - totalPaid, 0);
 
   const netWorth =
-    totalIncome + totalSavings - outstandingDebt;
-
-  const netWorthStatus =
-    netWorth >= 0 ? "Healthy" : "Needs attention";
+    totalIncome + totalSaved - outstandingDebt;
 
   const incomeAllocatedPct =
     totalIncome > 0
       ? Math.round((totalSpent / totalIncome) * 100)
       : 0;
 
+  // KPI object for PDF
   const kpis = {
     totalIncome,
     totalSpent,
     availableBalance,
     needsActual,
     wantsActual,
-    totalSavings,
+    totalSavings: totalSaved,
     totalDebt: outstandingDebt,
     netWorth,
     incomeAllocatedPct,
   };
+
   // ================= UI =================
   return (
-    <div className="min-h-screen  flex justify-center relative overflow-hidden">
+    <div className="min-h-screen flex justify-center relative overflow-hidden">
+      {/* background */}
       <div
-        className="absolute  pointer-events-none z-0 inset-0 opacity-50"
+        className="absolute inset-0 z-0 opacity-50 pointer-events-none"
         style={{
           backgroundImage:
             "radial-gradient(circle at 1px 1px, rgba(15,23,42,0.06) 1px, transparent 0)",
           backgroundSize: "24px 24px",
         }}
       />
-      <div className="w-full max-w-7xl px-8 py-10 space-y-10">
+
+      <div className="relative z-10 w-full max-w-7xl px-8 py-10 space-y-10">
         {/* ================= HEADER ================= */}
         <header className="flex items-center justify-between">
-          {/* ================= LEFT: BRAND ================= */}
+          {/* Brand */}
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-blue-500 text-white flex items-center justify-center font-semibold">
               ex
             </div>
-
             <span className="text-lg font-semibold text-gray-900">
               exPtrack
             </span>
+
           </div>
 
-          {/* ================= CENTER: CONTEXT ================= */}
+          {/* Month switcher */}
           <div className="hidden md:flex items-center gap-3 text-sm">
             <span className="text-gray-400">Dashboard</span>
             <span className="text-gray-300">/</span>
 
             <button
               onClick={prevMonth}
-              className="h-7 w-7 rounded-md border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100"
-              aria-label="Previous month"
+              className="h-7 w-7 rounded-md border flex items-center justify-center"
             >
               ‹
             </button>
 
-            <span className="font-medium text-gray-900 min-w-[80px] text-center">
+            <span className="font-medium min-w-[80px] text-center">
               {MONTHS[monthIndex]}
             </span>
 
             <button
               onClick={nextMonth}
-              className="h-7 w-7 rounded-md border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100"
-              aria-label="Next month"
+              className="h-7 w-7 rounded-md border flex items-center justify-center"
             >
               ›
             </button>
+
             <button
-              onClick={() => exportPdf(`exptrack-${MONTHS[monthIndex]}-${YEAR}.pdf`)}
-              className="text-sm font-medium px-4 py-2 rounded-md border hover:bg-gray-100"
+              onClick={() =>
+                exportPdf(
+                  `exptrack-${MONTHS[monthIndex]}-${YEAR}.pdf`
+                )
+              }
+              className="ml-3 text-sm font-medium px-4 py-2 rounded-md border hover:bg-gray-100"
             >
               Export PDF
             </button>
           </div>
 
-
-
-          {/* ================= RIGHT: USER ================= */}
+          {/* User */}
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
-              Hi, <span className="font-medium text-gray-900">Shajahan S</span>
+            <span className="text-sm">
+              Hi, <strong>Shajahan S</strong>
             </span>
-
-            <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-semibold text-slate-700">
+            <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-semibold">
               SJ
             </div>
           </div>
@@ -187,14 +185,14 @@ export default function App() {
         {/* ================= INCOME ================= */}
         <IncomeCard
           income={income.income}
-          onUpdate={income.updateIncome}
           onAdd={income.addIncome}
+          onUpdate={income.updateIncome}
           onDelete={income.deleteIncome}
           totalExpected={income.totalExpected}
           totalActual={income.totalActual}
         />
 
-        {/* ================= KPI OVERVIEW ================= */}
+        {/* ================= KPI ================= */}
         <KPIOverview
           totalIncome={totalIncome}
           availableBalance={availableBalance}
@@ -202,10 +200,9 @@ export default function App() {
           needsActual={needsActual}
           wantsActual={wantsActual}
           incomeAllocatedPct={incomeAllocatedPct}
-          netWorth={netWorth}
-          netWorthStatus={netWorthStatus}
-          totalDebt={outstandingDebt}
           totalSavings={totalSaved}
+          totalDebt={outstandingDebt}
+          netWorth={netWorth}
         />
 
         {/* ================= NEEDS + WANTS ================= */}
@@ -229,8 +226,6 @@ export default function App() {
           />
         </div>
 
-
-
         {/* ================= SAVINGS + DEBT ================= */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SavingsCard
@@ -251,8 +246,9 @@ export default function App() {
           />
         </div>
 
+        {/* ================= PDF ROOT ================= */}
         <div className="hidden">
-          <div className="pdf-export" id="pdf-root">
+          <div id="pdf-root">
             <ReportView
               month={MONTHS[monthIndex]}
               year={YEAR}
@@ -266,7 +262,6 @@ export default function App() {
             />
           </div>
         </div>
-
       </div>
     </div>
   );

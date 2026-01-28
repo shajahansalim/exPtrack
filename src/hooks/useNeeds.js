@@ -1,69 +1,47 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { toNumber } from "../utils/money";
 
-const STORAGE_KEY = "needs_v1";
+export function useNeeds(monthKey) {
+  const STORAGE_KEY = `need_${monthKey}`;
 
-export function useNeeds() {
   const [needs, setNeeds] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
   });
 
-  // ---------- ADD (from modal) ----------
-  const addNeed = (item) => {
-    setNeeds((prev) => [
-      ...prev,
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(needs));
+  }, [needs, STORAGE_KEY]);
+
+  const addNeed = (item) =>
+    setNeeds((p) => [
+      ...p,
       {
-        id: item.id ?? crypto.randomUUID(),
+        id: crypto.randomUUID(),
         name: item.name,
         budget: toNumber(item.budget),
         actual: toNumber(item.actual),
       },
     ]);
-  };
 
-  // ---------- UPDATE (future edit modal) ----------
-  const updateNeed = (id, field, value) => {
-    setNeeds((prev) =>
-      prev.map((n) => {
-        if (n.id !== id) return n;
-
-        if (field === "name") {
-          return { ...n, name: value };
-        }
-
-        return { ...n, [field]: toNumber(value) };
-      })
+  const updateNeed = (id, field, value) =>
+    setNeeds((p) =>
+      p.map((n) =>
+        n.id === id
+          ? { ...n, [field]: field === "name" ? value : toNumber(value) }
+          : n
+      )
     );
-  };
 
-  // ---------- DELETE ----------
-  const deleteNeed = (id) => {
-    setNeeds((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  // ---------- TOTALS ----------
-  const totalBudget = needs.reduce(
-    (sum, n) => sum + toNumber(n.budget),
-    0
-  );
-
-  const totalActual = needs.reduce(
-    (sum, n) => sum + toNumber(n.actual),
-    0
-  );
-
-  // ---------- PERSIST ----------
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(needs));
-  }, [needs]);
+  const deleteNeed = (id) =>
+    setNeeds((p) => p.filter((n) => n.id !== id));
 
   return {
     needs,
     addNeed,
     updateNeed,
     deleteNeed,
-    totalBudget,
-    totalActual,
+    totalBudget: needs.reduce((s, n) => s + toNumber(n.budget), 0),
+    totalActual: needs.reduce((s, n) => s + toNumber(n.actual), 0),
   };
 }

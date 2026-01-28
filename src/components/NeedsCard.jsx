@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AddItemModal from "./AddItemModal";
+import NeedsModal from "./NeedsModal";
 import { formatINR } from "../utils/money";
 
 export default function NeedsCard({
@@ -100,13 +100,15 @@ export default function NeedsCard({
       )}
 
       {/* Modal */}
-      {showModal ? (
-        <AddItemModal
-          title="Add bill"
+      {showModal && (
+        <NeedsModal
           onClose={() => setShowModal(false)}
-          onSave={addNeed}
+          onSave={(data) => {
+            addNeed(data); // ✅ CORRECT
+            setShowModal(false);
+          }}
         />
-      ) : null}
+      )}
     </section>
   );
 }

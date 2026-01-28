@@ -1,72 +1,47 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { toNumber } from "../utils/money";
 
-const STORAGE_KEY = "income_v1";
+export function useIncome(monthKey) {
+  const STORAGE_KEY = `income_${monthKey}`;
 
-const DEFAULT_INCOME = [
-  { id: 1, name: "Paycheck", expected: 0, actual: 0 },
-];
-
-export function useIncome() {
   const [income, setIncome] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : DEFAULT_INCOME;
+    return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(income));
-  }, [income]);
+  }, [income, STORAGE_KEY]);
 
-  // -------- ADD (from modal or form later) --------
-  const addIncome = (item) => {
-    setIncome((prev) => [
-      ...prev,
+  const addIncome = (item) =>
+    setIncome((p) => [
+      ...p,
       {
-        id: item.id ?? crypto.randomUUID(),
+        id: crypto.randomUUID(),
         name: item.name,
         expected: toNumber(item.expected),
         actual: toNumber(item.actual),
       },
     ]);
-  };
 
-  // -------- UPDATE --------
-  const updateIncome = (id, field, value) => {
-    setIncome((prev) =>
-      prev.map((i) => {
-        if (i.id !== id) return i;
-
-        if (field === "name") {
-          return { ...i, name: value };
-        }
-
-        return { ...i, [field]: toNumber(value) };
-      })
+  const updateIncome = (id, field, value) =>
+    setIncome((p) =>
+      p.map((i) =>
+        i.id === id
+          ? { ...i, [field]: field === "name" ? value : toNumber(value) }
+          : i
+      )
     );
-  };
 
-  // -------- DELETE --------
-  const deleteIncome = (id) => {
-    setIncome((prev) => prev.filter((i) => i.id !== id));
-  };
-
-  // -------- TOTALS --------
-  const totalExpected = income.reduce(
-    (sum, i) => sum + toNumber(i.expected),
-    0
-  );
-
-  const totalActual = income.reduce(
-    (sum, i) => sum + toNumber(i.actual),
-    0
-  );
+  const deleteIncome = (id) =>
+    setIncome((p) => p.filter((i) => i.id !== id));
 
   return {
     income,
     addIncome,
     updateIncome,
     deleteIncome,
-    totalExpected,
-    totalActual,
+    totalExpected: income.reduce((s, i) => s + toNumber(i.expected), 0),
+    totalActual: income.reduce((s, i) => s + toNumber(i.actual), 0),
   };
 }

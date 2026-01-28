@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AddItemModal from "./AddItemModal";
+import SavingsModal from "./SavingsModal";
 import { formatINR } from "../utils/money";
 
 export default function SavingsCard({
@@ -104,20 +104,18 @@ export default function SavingsCard({
             )}
 
             {/* Modal */}
+
+
             {showModal && (
-                <AddItemModal
-                    title="Add saving"
+                <SavingsModal
                     onClose={() => setShowModal(false)}
                     onSave={(data) => {
-                        addSaving({
-                            name: data.name,
-                            goal: data.budget,
-                            saved: data.actual,
-                        });
+                        addSaving(data);
                         setShowModal(false);
                     }}
                 />
             )}
+
         </section>
     );
 }

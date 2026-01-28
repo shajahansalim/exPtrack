@@ -1,25 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { toNumber } from "../utils/money";
 
-const STORAGE_KEY = "savings_v1";
+export function useSavings(monthKey) {
+    const STORAGE_KEY = `saving_${monthKey}`;
 
-const DEFAULT_SAVINGS = [
-    { id: 1, name: "Emergency Fund", goal: 0, saved: 0 },
-];
-
-export function useSavings() {
     const [savings, setSavings] = useState(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : DEFAULT_SAVINGS;
+        return saved ? JSON.parse(saved) : [];
     });
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savings));
-    }, [savings]);
+    }, [savings, STORAGE_KEY]);
 
-    const addSaving = (item) => {
-        setSavings((prev) => [
-            ...prev,
+    const addSaving = (item) =>
+        setSavings((p) => [
+            ...p,
             {
                 id: crypto.randomUUID(),
                 name: item.name,
@@ -27,35 +23,24 @@ export function useSavings() {
                 saved: toNumber(item.saved),
             },
         ]);
-    };
 
-    const updateSaving = (id, field, value) => {
-        setSavings((prev) =>
-            prev.map((s) =>
+    const updateSaving = (id, field, value) =>
+        setSavings((p) =>
+            p.map((s) =>
                 s.id === id
-                    ? {
-                        ...s,
-                        [field]: field === "name" ? value : toNumber(value),
-                    }
+                    ? { ...s, [field]: field === "name" ? value : toNumber(value) }
                     : s
             )
         );
-    };
 
-    const deleteSaving = (id) => {
-        setSavings((prev) => prev.filter((s) => s.id !== id));
-    };
-
-    const totalSaved = savings.reduce(
-        (s, r) => s + toNumber(r.saved),
-        0
-    );
+    const deleteSaving = (id) =>
+        setSavings((p) => p.filter((s) => s.id !== id));
 
     return {
         savings,
         addSaving,
         updateSaving,
         deleteSaving,
-        totalSaved,
+        totalSaved: savings.reduce((s, x) => s + toNumber(x.saved), 0),
     };
 }
