@@ -3,3 +3,85 @@
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
+
+/* PDF SAFE OVERRIDES */
+.pdf-export * {
+  color: rgb(0, 0, 0) !important;
+  background-color: rgb(255, 255, 255) !important;
+  border-color: rgb(200, 200, 200) !important;
+}
+
+.pdf-export .bg-green-50 {
+  background-color: #e8f5e9 !important;
+}
+
+.pdf-export .bg-red-50 {
+  background-color: #fdecea !important;
+}
+
+.pdf-export .bg-blue-50 {
+  background-color: #e3f2fd !important;
+}
+
+.pdf-export .text-green-700 {
+  color: #2e7d32 !important;
+}
+
+.pdf-export .text-red-700 {
+  color: #c62828 !important;
+}
+
+.pdf-export .text-blue-700 {
+  color: #1565c0 !important;
+}
+
+/* ================= PDF EXPORT ================= */
+.pdf-export {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  color: #000;
+  background: #fff;
+}
+
+.pdf-export h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.pdf-export h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.pdf-export table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.pdf-export th,
+.pdf-export td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  font-size: 11px;
+  text-align: left;
+}
+
+.pdf-export tr {
+  page-break-inside: avoid;
+}
+
+.pdf-page-break {
+  page-break-before: always;
+}
+
+/* Page numbers */
+.pdf-export {
+  counter-reset: page;
+}
+
+.pageNumber::after {
+  counter-increment: page;
+  content: counter(page);
+}

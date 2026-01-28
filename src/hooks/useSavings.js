@@ -4,7 +4,7 @@ import { toNumber } from "../utils/money";
 const STORAGE_KEY = "savings_v1";
 
 const DEFAULT_SAVINGS = [
-    { id: 1, name: "Emergency Fund", goal: 100000, saved: 0 },
+    { id: 1, name: "Emergency Fund", goal: 0, saved: 0 },
 ];
 
 export function useSavings() {

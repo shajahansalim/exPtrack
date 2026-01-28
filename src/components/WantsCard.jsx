@@ -83,8 +83,9 @@ export default function WantsCard({
       {/* Empty state */}
       {wants.length === 0 && (
         <p className="mt-6 text-sm text-slate-500">
-          No discretionary spending added yet. Track food, shopping,
-          subscriptions, or entertainment.
+          Capture non-essential spending such as food, shopping, and subscriptions.
+          <br />
+          This helps you control lifestyle inflation and discretionary costs.
         </p>
       )}
 

@@ -47,7 +47,7 @@ export default function DebtCard({
                         return (
                             <div
                                 key={item.id}
-                                className="grid grid-cols-5 items-center py-3 border-b border-gray-100 bg-red-50"
+                                className="grid grid-cols-5 items-center py-3 border-b border-gray-100"
                             >
                                 <span className="text-sm">{item.name}</span>
 
@@ -78,7 +78,9 @@ export default function DebtCard({
             {/* Empty state */}
             {debt.length === 0 && (
                 <p className="mt-6 text-sm text-slate-500">
-                    No debts added yet. Add loans or credit balances to track repayments.
+                    Track outstanding loans and credit balances in one place.
+                    <br />
+                    Monitoring debt helps you plan repayments and reduce interest costs.
                 </p>
             )}
 

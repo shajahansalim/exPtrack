@@ -4,8 +4,7 @@ import { toNumber } from "../utils/money";
 const STORAGE_KEY = "income_v1";
 
 const DEFAULT_INCOME = [
-  { id: 1, name: "IBM Paycheck", expected: 95000, actual: 95000 },
-  { id: 2, name: "EPFO", expected: 0, actual: 28000 },
+  { id: 1, name: "Paycheck", expected: 0, actual: 0 },
 ];
 
 export function useIncome() {

@@ -28,6 +28,7 @@ export default function IncomeCard({
         >
           {open ? "Close" : "Edit income"}
         </button>
+
       </div>
 
       {/* COLLAPSED VIEW */}

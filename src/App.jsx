@@ -5,6 +5,8 @@ import WantsCard from "./components/WantsCard";
 import IncomeCard from "./components/IncomeCard";
 import SavingsCard from "./components/SavingsCard";
 import DebtCard from "./components/DebtCard";
+import { exportPdf } from "./utils/exportPdf";
+import ReportView from "./components/ReportView";
 
 import { useIncome } from "./hooks/useIncome";
 import { useNeeds } from "./hooks/useNeeds";
@@ -19,7 +21,7 @@ export default function App() {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-
+  const YEAR = new Date().getFullYear();
   const [monthIndex, setMonthIndex] = useState(0); // January
 
   const prevMonth = () => {
@@ -29,6 +31,8 @@ export default function App() {
   const nextMonth = () => {
     setMonthIndex((i) => (i === 11 ? 0 : i + 1));
   };
+
+
 
   // ================= INCOME =================
   const income = useIncome();
@@ -72,9 +76,16 @@ export default function App() {
     totalPaid,
   } = useDebt();
 
+  const totalSpent =
+    needsActual +
+    wantsActual +
+    totalSaved +
+    totalPaid;
+
+
+
   // ================= DERIVED KPI VALUES =================
   const totalIncome = income.totalActual || 0;
-  const totalSpent = needsActual + wantsActual;
   const availableBalance = totalIncome - totalSpent;
 
   const totalSavings = totalSaved || 0;
@@ -90,6 +101,18 @@ export default function App() {
     totalIncome > 0
       ? Math.round((totalSpent / totalIncome) * 100)
       : 0;
+
+  const kpis = {
+    totalIncome,
+    totalSpent,
+    availableBalance,
+    needsActual,
+    wantsActual,
+    totalSavings,
+    totalDebt: outstandingDebt,
+    netWorth,
+    incomeAllocatedPct,
+  };
   // ================= UI =================
   return (
     <div className="min-h-screen  flex justify-center relative overflow-hidden">
@@ -104,27 +127,20 @@ export default function App() {
       <div className="w-full max-w-7xl px-8 py-10 space-y-10">
         {/* ================= HEADER ================= */}
         <header className="flex items-center justify-between">
-          {/* LEFT: Brand */}
+          {/* ================= LEFT: BRAND ================= */}
           <div className="flex items-center gap-3">
-            {/* Logo */}
-            <div className="h-9 w-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-semibold">
+            <div className="h-9 w-9 rounded-lg bg-blue-500 text-white flex items-center justify-center font-semibold">
               ex
             </div>
 
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">
-                exPtrack
-              </h1>
-              <p className="text-xs text-gray-500">
-                Smart expense & budget tracking
-              </p>
-            </div>
+            <span className="text-lg font-semibold text-gray-900">
+              exPtrack
+            </span>
           </div>
 
-          {/* CENTER: Page context */}
+          {/* ================= CENTER: CONTEXT ================= */}
           <div className="hidden md:flex items-center gap-3 text-sm">
             <span className="text-gray-400">Dashboard</span>
-
             <span className="text-gray-300">/</span>
 
             <button
@@ -135,7 +151,7 @@ export default function App() {
               ‹
             </button>
 
-            <span className="font-medium text-gray-900 min-w-27.5 text-center">
+            <span className="font-medium text-gray-900 min-w-[80px] text-center">
               {MONTHS[monthIndex]}
             </span>
 
@@ -146,17 +162,25 @@ export default function App() {
             >
               ›
             </button>
+            <button
+              onClick={() => exportPdf(`exptrack-${MONTHS[monthIndex]}-${YEAR}.pdf`)}
+              className="text-sm font-medium px-4 py-2 rounded-md border hover:bg-gray-100"
+            >
+              Export PDF
+            </button>
           </div>
 
-          {/* RIGHT: Auth actions */}
-          <div className="flex items-center gap-3">
-            <button className="text-sm text-gray-600 hover:text-gray-900">
-              Login
-            </button>
 
-            <button className="text-sm font-medium px-4 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800">
-              Get started
-            </button>
+
+          {/* ================= RIGHT: USER ================= */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">
+              Hi, <span className="font-medium text-gray-900">Shajahan S</span>
+            </span>
+
+            <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-semibold text-slate-700">
+              SJ
+            </div>
           </div>
         </header>
 
@@ -181,6 +205,7 @@ export default function App() {
           netWorth={netWorth}
           netWorthStatus={netWorthStatus}
           totalDebt={outstandingDebt}
+          totalSavings={totalSaved}
         />
 
         {/* ================= NEEDS + WANTS ================= */}
@@ -226,7 +251,21 @@ export default function App() {
           />
         </div>
 
-
+        <div className="hidden">
+          <div className="pdf-export" id="pdf-root">
+            <ReportView
+              month={MONTHS[monthIndex]}
+              year={YEAR}
+              user="Shajahan S"
+              income={income.income}
+              needs={needs}
+              wants={wants}
+              savings={savings}
+              debt={debt}
+              kpis={kpis}
+            />
+          </div>
+        </div>
 
       </div>
     </div>

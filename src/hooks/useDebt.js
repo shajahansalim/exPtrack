@@ -4,8 +4,8 @@ import { toNumber } from "../utils/money";
 const STORAGE_KEY = "debt_v1";
 
 const DEFAULT_DEBT = [
-    { id: 1, name: "Gold Loan", balance: 230000, paid: 0 },
-    { id: 2, name: "Personal Loan", balance: 31331, paid: 5501 },
+    { id: 1, name: "Gold Loan", balance: 0, paid: 0 },
+    { id: 2, name: "Personal Loan", balance: 0, paid: 0 },
 ];
 
 export function useDebt() {

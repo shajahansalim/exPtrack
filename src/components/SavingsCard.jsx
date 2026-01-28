@@ -52,7 +52,7 @@ export default function SavingsCard({
                         return (
                             <div
                                 key={item.id}
-                                className={`grid grid-cols-5 items-center py-3 border-b border-gray-100 ${isBehind ? "bg-red-50" : ""
+                                className={`grid grid-cols-5 items-center py-3 border-b border-gray-100 ${isBehind ? "bg-red-1" : ""
                                     }`}
                             >
                                 <span className="text-sm">{item.name}</span>
@@ -87,7 +87,9 @@ export default function SavingsCard({
             {/* Empty state */}
             {savings.length === 0 && (
                 <p className="mt-6 text-sm text-slate-500">
-                    No savings added yet. Start with an emergency fund or long-term goals.
+                    Build your financial safety net and plan for future goals.
+                    <br />
+                    Start with an emergency fund or a long-term savings goal.
                 </p>
             )}
 
