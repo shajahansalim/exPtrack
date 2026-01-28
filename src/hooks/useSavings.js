@@ -8,49 +8,48 @@ export function useSavings(monthKey) {
 
     useEffect(() => {
         hydrated.current = false;
-        const saved = localStorage.getItem(STORAGE_KEY);
-        setSavings(saved ? JSON.parse(saved) : []);
+
+        const current = localStorage.getItem(STORAGE_KEY);
+        if (current && JSON.parse(current).length > 0) {
+            setSavings(JSON.parse(current));
+            hydrated.current = true;
+            return;
+        }
+
+        const [year, month] = monthKey.split("-").map(Number);
+        const prevMonth =
+            month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, "0")}`;
+
+        const prev = localStorage.getItem(`saving_${prevMonth}`);
+        if (prev && JSON.parse(prev).length > 0) {
+            setSavings(JSON.parse(prev).map(s => ({ ...s, id: crypto.randomUUID() })));
+        } else {
+            setSavings([]);
+        }
+
         hydrated.current = true;
-    }, [STORAGE_KEY]);
+    }, [monthKey]);
 
     useEffect(() => {
         if (!hydrated.current) return;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savings));
     }, [savings, STORAGE_KEY]);
 
-    const addSaving = (item) => {
-        setSavings((prev) => [
+    const addSaving = (item) =>
+        setSavings(prev => [
             ...prev,
-            {
-                id: crypto.randomUUID(),
-                name: item.name,
-                goal: toNumber(item.goal),
-                saved: toNumber(item.saved),
-            },
+            { id: crypto.randomUUID(), name: item.name, goal: toNumber(item.goal), saved: toNumber(item.saved) },
         ]);
-    };
 
-    const updateSaving = (id, field, value) => {
-        setSavings((prev) =>
-            prev.map((s) =>
-                s.id === id
-                    ? { ...s, [field]: field === "name" ? value : toNumber(value) }
-                    : s
-            )
+    const updateSaving = (id, field, value) =>
+        setSavings(prev =>
+            prev.map(s => s.id === id ? { ...s, [field]: field === "name" ? value : toNumber(value) } : s)
         );
-    };
 
-    const deleteSaving = (id) => {
-        setSavings((prev) => prev.filter((s) => s.id !== id));
-    };
+    const deleteSaving = (id) =>
+        setSavings(prev => prev.filter(s => s.id !== id));
 
-    const totalSaved = savings.reduce((sum, s) => sum + toNumber(s.saved), 0);
+    const totalSaved = savings.reduce((s, x) => s + toNumber(x.saved), 0);
 
-    return {
-        savings,
-        addSaving,
-        updateSaving,
-        deleteSaving,
-        totalSaved,
-    };
+    return { savings, addSaving, updateSaving, deleteSaving, totalSaved };
 }
