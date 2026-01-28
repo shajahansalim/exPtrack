@@ -4,7 +4,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* PDF SAFE OVERRIDES */
+/* PDF SAFE OVERRIDES
 .pdf-export * {
   color: rgb(0, 0, 0) !important;
   background-color: rgb(255, 255, 255) !important;
@@ -36,7 +36,7 @@ body {
 }
 
 /* ================= PDF EXPORT ================= */
-.pdf-export {
+/* .pdf-export {
   font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   color: #000;
@@ -77,17 +77,17 @@ body {
 }
 
 /* Page numbers */
-.pdf-export {
+/* .pdf-export {
   counter-reset: page;
 }
 
 .pageNumber::after {
   counter-increment: page;
   content: counter(page);
-}
+} */
 
 /* ================= PDF COVER ================= */
-.pdf-cover {
+/* .pdf-cover {
   text-align: center;
   padding-top: 80px;
 }
@@ -128,10 +128,10 @@ body {
 
 .cover-summary strong {
   font-size: 14px;
-}
+} */
 
 /* ================= TABLE POLISH ================= */
-.pdf-export section {
+/* .pdf-export section {
   margin-bottom: 24px;
 }
 
@@ -143,12 +143,235 @@ body {
 
 .pdf-export tr.highlight td {
   font-weight: 700;
-}
+} */
 
 /* ================= FOOTER ================= */
-.pdf-export footer {
+/* .pdf-export footer {
   margin-top: 40px;
   font-size: 10px;
   text-align: center;
   color: #777;
+}
+
+.report-root {
+  font-family: Inter, Arial, sans-serif;
+  font-size: 12px;
+  color: #111;
+  padding: 24px;
+}
+
+.report-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #555;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 11px;
+}
+
+h2 {
+  margin-top: 28px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 6px;
+}
+
+.summary-grid {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.summary-box {
+  border: 1px solid #ccc;
+  padding: 12px;
+  flex: 1;
+  text-align: center;
+}
+
+.summary-box.negative {
+  border-color: #d32f2f;
+}
+
+.summary-box.positive {
+  border-color: #2e7d32;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th,
+td {
+  border-bottom: 1px solid #ddd;
+  padding: 6px;
+  text-align: left;
+}
+
+.bold td {
+  font-weight: bold;
+}
+
+.page-break {
+  page-break-before: always;
+}
+
+.recommendations {
+  margin-top: 12px;
+  padding-left: 16px;
+}
+
+footer {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 10px;
+  color: #666;
+}
+ /* 
+ 
+.pdf-root {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  padding: 28px;
+  color: #111;
+}
+
+.pdf-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 12px;
+}
+
+.pdf-meta {
+  text-align: right;
+  font-size: 11px;
+  color: #555;
+}
+
+.snapshot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 24px 0;
+  gap: 16px;
+}
+
+.snapshot label {
+  font-size: 11px;
+  color: #666;
+}
+
+.snapshot strong {
+  font-size: 18px;
+}
+
+.positive strong {
+  color: #2e7d32;
+}
+
+.negative strong {
+  color: #c62828;
+}
+
+.insight {
+  margin-bottom: 32px;
+  color: #444;
+}
+
+.pdf-section {
+  margin-bottom: 32px;
+}
+
+.pdf-section h2 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.pdf-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pdf-table th {
+  text-align: left;
+  font-size: 11px;
+  color: #666;
+  border-bottom: 1px solid #ccc;
+  padding: 6px 0;
+}
+
+.pdf-table td {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.footer-row td {
+  font-weight: 600;
+}
+
+.recommendations {
+  padding-left: 16px;
+}
+
+.page-break {
+  page-break-before: always;
+}
+
+.pdf-footer {
+  text-align: center;
+  font-size: 10px;
+  color: #777;
+  margin-top: 32px;
+} */
+
+/* ===== PDF SAFE STYLES ===== */
+#pdf-root,
+#pdf-root * {
+  color: #111 !important;
+  background: transparent !important;
+  border-color: #ddd !important;
+}
+
+/* Typography */
+#pdf-root {
+  font-family: Inter, Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Headers */
+#pdf-root h1,
+#pdf-root h2,
+#pdf-root h3 {
+  color: #000 !important;
+}
+
+/* Muted text */
+#pdf-root .text-gray-500 {
+  color: #666 !important;
+}
+
+/* Positive / negative */
+#pdf-root .text-green-600 {
+  color: #0f766e !important;
+  /* hex */
+}
+
+#pdf-root .text-red-600 {
+  color: #b91c1c !important;
+  /* hex */
+}
+
+/* Page break */
+.page-break {
+  page-break-before: always;
 }

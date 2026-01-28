@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import KPIOverview from "./components/KPIOverview";
 import NeedsCard from "./components/NeedsCard";
 import WantsCard from "./components/WantsCard";
@@ -22,7 +22,16 @@ export default function App() {
   ];
 
   const YEAR = new Date().getFullYear();
-  const [monthIndex, setMonthIndex] = useState(0); // January
+  const ACTIVE_MONTH_KEY = "active_month_index";
+
+  const [monthIndex, setMonthIndex] = useState(() => {
+    const saved = localStorage.getItem(ACTIVE_MONTH_KEY);
+    return saved !== null ? Number(saved) : new Date().getMonth();
+  });
+
+  useEffect(() => {
+    localStorage.setItem(ACTIVE_MONTH_KEY, monthIndex);
+  }, [monthIndex]);
 
   const monthKey = `${YEAR}-${String(monthIndex + 1).padStart(2, "0")}`;
 
@@ -247,8 +256,17 @@ export default function App() {
         </div>
 
         {/* ================= PDF ROOT ================= */}
-        <div className="hidden">
+        <div
+          style={{
+            position: "fixed",
+            top: "-10000px",
+            left: "-10000px",
+            width: "800px",
+            background: "white",
+          }}
+        >
           <div id="pdf-root">
+
             <ReportView
               month={MONTHS[monthIndex]}
               year={YEAR}

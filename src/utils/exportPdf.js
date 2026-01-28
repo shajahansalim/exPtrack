@@ -1,21 +1,23 @@
 import html2pdf from "html2pdf.js";
 
-export function exportPdf(filename = "exptrack-report.pdf") {
-    const element = document.querySelector(".pdf-export");
+export async function exportPdf(filename) {
+    // wait for DOM paint
+    await new Promise((r) => setTimeout(r, 0));
 
-    if (!element) {
+    const element = document.getElementById("pdf-root");
+
+    if (!element || element.offsetHeight === 0) {
         alert("Nothing to export");
         return;
     }
 
     const opt = {
-        margin: [12, 10, 12, 10],
+        margin: 10,
         filename,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
             scale: 2,
             useCORS: true,
-            backgroundColor: "#ffffff",
         },
         jsPDF: {
             unit: "mm",
@@ -24,5 +26,5 @@ export function exportPdf(filename = "exptrack-report.pdf") {
         },
     };
 
-    html2pdf().set(opt).from(element).save();
+    await html2pdf().set(opt).from(element).save();
 }

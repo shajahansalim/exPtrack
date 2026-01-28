@@ -4,174 +4,248 @@ export default function ReportView({
     month,
     year,
     user,
-    income = [],
-    needs = [],
-    wants = [],
-    savings = [],
-    debt = [],
+    income,
+    needs,
+    wants,
+    savings,
+    debt,
+    kpis,
 }) {
-    const totalIncome = income.reduce((s, i) => s + (i.actual || 0), 0);
-
-    const totalNeeds = needs.reduce((s, n) => s + (n.actual || 0), 0);
-    const totalWants = wants.reduce((s, w) => s + (w.actual || 0), 0);
-    const totalExpenses = totalNeeds + totalWants;
-
-    const totalSaved = savings.reduce((s, g) => s + (g.saved || 0), 0);
-
-    const totalDebt = debt.reduce(
-        (s, d) => s + Math.max((d.balance || 0) - (d.paid || 0), 0),
-        0
-    );
-
-    const netWorth = totalIncome + totalSaved - totalDebt;
-
     return (
-        <div style={styles.page}>
+        <div className="pdf-root text-[12px] text-gray-900 leading-relaxed">
             {/* ================= HEADER ================= */}
-            <h1 style={styles.title}>exPtrack</h1>
-            <p style={styles.subtitle}>Personal Finance Report</p>
+            <header className="flex justify-between items-end border-b pb-4 mb-6">
+                <div>
+                    <h1 className="text-xl font-semibold tracking-tight">exPtrack</h1>
+                    <p className="text-xs text-gray-500">
+                        Monthly Financial Report
+                    </p>
+                </div>
 
-            <div style={styles.meta}>
-                <span><b>Month:</b> {month} {year}</span>
-                <span><b>User:</b> {user}</span>
-            </div>
+                <div className="text-right text-xs">
+                    <div className="font-medium">
+                        {month} {year}
+                    </div>
+                    <div className="text-gray-500">User: {user}</div>
+                </div>
+            </header>
 
-            <hr />
+            {/* ================= KPI STRIP ================= */}
+            <section className="grid grid-cols-3 gap-6 mb-8">
+                <KPI label="Total Income" value={kpis.totalIncome} />
+                <KPI label="Total Spent" value={kpis.totalSpent} />
+                <KPI
+                    label="Net Worth"
+                    value={kpis.netWorth}
+                    highlight={kpis.netWorth < 0}
+                />
+            </section>
 
-            {/* ================= EXECUTIVE SUMMARY ================= */}
-            <h2 style={styles.sectionTitle}>Executive Summary</h2>
-
-            <div style={styles.kpiRow}>
-                <KPI label="Total Income" value={formatINR(totalIncome)} />
-                <KPI label="Total Spent" value={formatINR(totalExpenses + totalSaved)} />
-                <KPI label="Net Worth" value={formatINR(netWorth)} />
-            </div>
-
-            <p style={styles.insight}>
-                This month, you spent{" "}
-                <b>{Math.round(((totalExpenses + totalSaved) / totalIncome) * 100)}%</b>{" "}
-                of your income. Your net worth is{" "}
-                <b>{netWorth >= 0 ? "positive" : "negative"}</b>, mainly due to outstanding
-                debt obligations.
-            </p>
+            {/* ================= SUMMARY ================= */}
+            <section className="mb-8">
+                <p className="text-sm">
+                    You allocated{" "}
+                    <strong>{kpis.incomeAllocatedPct}%</strong> of your income
+                    this month.
+                    {kpis.netWorth < 0 ? (
+                        <>
+                            {" "}
+                            Your net worth is{" "}
+                            <strong className="text-red-600">negative</strong>,
+                            primarily due to outstanding debt.
+                        </>
+                    ) : (
+                        <>
+                            {" "}
+                            Your finances remain{" "}
+                            <strong className="text-green-600">stable</strong>.
+                        </>
+                    )}
+                </p>
+            </section>
 
             {/* ================= CASH FLOW ================= */}
-            <h2 style={styles.sectionTitle}>Cash Flow Summary</h2>
+            <Section title="Cash Flow Summary">
+                <KeyValue label="Total Income" value={kpis.totalIncome} />
+                <KeyValue label="Total Expenses" value={kpis.needsActual + kpis.wantsActual} />
+                <KeyValue label="Total Savings" value={kpis.totalSavings} />
+                <KeyValue label="Outstanding Debt" value={kpis.totalDebt} />
+                <KeyValue label="Net Worth" value={kpis.netWorth} bold />
+            </Section>
 
-            <Table
-                rows={[
-                    ["Total Income", formatINR(totalIncome)],
-                    ["Total Expenses", formatINR(totalExpenses)],
-                    ["Total Savings", formatINR(totalSaved)],
-                    ["Debt Outstanding", formatINR(totalDebt)],
-                    ["Net Worth", formatINR(netWorth)],
-                ]}
-            />
+            {/* PAGE BREAK */}
+            <PageBreak />
 
             {/* ================= INCOME ================= */}
-            <h2 style={styles.sectionTitle}>Income</h2>
-            <Table
-                header={["Source", "Expected", "Actual"]}
-                rows={income.map((i) => [
-                    i.name,
-                    formatINR(i.expected),
-                    formatINR(i.actual),
-                ])}
-            />
+            <Section title="Income">
+                <Table
+                    headers={["Source", "Expected", "Actual"]}
+                    rows={income.map((i) => [
+                        i.name,
+                        formatINR(i.expected),
+                        formatINR(i.actual),
+                    ])}
+                />
+            </Section>
 
             {/* ================= NEEDS ================= */}
-            <h2 style={styles.sectionTitle}>Essential Expenses (Needs)</h2>
-            <Table
-                header={["Name", "Budget", "Actual"]}
-                rows={needs.map((n) => [
-                    n.name,
-                    formatINR(n.budget),
-                    formatINR(n.actual),
-                ])}
-                footer={["Total", "", formatINR(totalNeeds)]}
-            />
+            <Section title="Essential Expenses (Needs)">
+                <Table
+                    headers={["Name", "Budget", "Actual"]}
+                    rows={needs.map((n) => [
+                        n.name,
+                        formatINR(n.budget),
+                        formatINR(n.actual),
+                    ])}
+                    footer={["Total", "", formatINR(kpis.needsActual)]}
+                />
+            </Section>
 
             {/* ================= WANTS ================= */}
-            <h2 style={styles.sectionTitle}>Discretionary Spending (Wants)</h2>
-            <Table
-                header={["Name", "Budget", "Actual"]}
-                rows={wants.map((w) => [
-                    w.name,
-                    formatINR(w.budget),
-                    formatINR(w.actual),
-                ])}
-                footer={["Total", "", formatINR(totalWants)]}
-            />
+            <Section title="Discretionary Spending (Wants)">
+                <Table
+                    headers={["Name", "Budget", "Actual"]}
+                    rows={wants.map((w) => [
+                        w.name,
+                        formatINR(w.budget),
+                        formatINR(w.actual),
+                    ])}
+                    footer={["Total", "", formatINR(kpis.wantsActual)]}
+                />
+            </Section>
+
+            <PageBreak />
 
             {/* ================= SAVINGS ================= */}
-            <h2 style={styles.sectionTitle}>Savings Goals</h2>
-            <Table
-                header={["Goal", "Target", "Saved", "Remaining"]}
-                rows={savings.map((s) => [
-                    s.name,
-                    formatINR(s.goal),
-                    formatINR(s.saved),
-                    formatINR(s.goal - s.saved),
-                ])}
-            />
+            <Section title="Savings Goals">
+                <Table
+                    headers={["Goal", "Target", "Saved", "Remaining"]}
+                    rows={savings.map((s) => [
+                        s.name,
+                        formatINR(s.goal),
+                        formatINR(s.saved),
+                        formatINR(s.goal - s.saved),
+                    ])}
+                />
+            </Section>
 
             {/* ================= DEBT ================= */}
-            <h2 style={styles.sectionTitle}>Outstanding Debt</h2>
-            <Table
-                header={["Loan", "Total", "Paid", "Remaining"]}
-                rows={debt.map((d) => [
-                    d.name,
-                    formatINR(d.balance),
-                    formatINR(d.paid),
-                    formatINR(d.balance - d.paid),
-                ])}
-                footer={["Total Debt", "", "", formatINR(totalDebt)]}
-            />
+            <Section title="Outstanding Debt">
+                <Table
+                    headers={["Loan", "Total", "Paid", "Remaining"]}
+                    rows={debt.map((d) => [
+                        d.name,
+                        formatINR(d.balance),
+                        formatINR(d.paid),
+                        formatINR(d.balance - d.paid),
+                    ])}
+                    footer={["Total Debt", "", "", formatINR(kpis.totalDebt)]}
+                />
+            </Section>
 
-            <p style={styles.footer}>
+            {/* ================= RECOMMENDATIONS ================= */}
+            <Section title="Recommendations">
+                <ul className="list-disc pl-5 text-sm space-y-2">
+                    {kpis.netWorth < 0 && (
+                        <li>
+                            Focus on reducing high-interest debt to improve net
+                            worth.
+                        </li>
+                    )}
+                    {kpis.incomeAllocatedPct > 60 && (
+                        <li>
+                            Your spending is relatively high. Consider increasing
+                            savings allocation.
+                        </li>
+                    )}
+                    {kpis.totalSavings === 0 && (
+                        <li>
+                            Start building an emergency fund covering at least 3–6
+                            months of expenses.
+                        </li>
+                    )}
+                </ul>
+            </Section>
+
+            {/* ================= FOOTER ================= */}
+            <footer className="mt-10 pt-4 border-t text-xs text-center text-gray-400">
                 Generated by exPtrack • Confidential Financial Report
-            </p>
+            </footer>
         </div>
     );
 }
 
-/* ================= SMALL COMPONENTS ================= */
+/* ================= HELPERS ================= */
 
-function KPI({ label, value }) {
+function KPI({ label, value, highlight }) {
     return (
-        <div style={styles.kpi}>
-            <div style={styles.kpiLabel}>{label}</div>
-            <div style={styles.kpiValue}>{value}</div>
+        <div>
+            <div className="text-xs text-gray-500 mb-1">{label}</div>
+            <div
+                className={`text-lg font-semibold ${highlight ? "text-red-600" : ""
+                    }`}
+            >
+                {formatINR(value)}
+            </div>
         </div>
     );
 }
 
-function Table({ header, rows, footer }) {
+function Section({ title, children }) {
     return (
-        <table style={styles.table}>
-            {header && (
-                <thead>
-                    <tr>
-                        {header.map((h) => (
-                            <th key={h} style={styles.th}>{h}</th>
-                        ))}
-                    </tr>
-                </thead>
-            )}
+        <section className="mb-8">
+            <h2 className="text-sm font-semibold uppercase tracking-wide mb-3">
+                {title}
+            </h2>
+            {children}
+        </section>
+    );
+}
+
+function KeyValue({ label, value, bold }) {
+    return (
+        <div className="flex justify-between py-1 border-b last:border-0">
+            <span className="text-gray-600">{label}</span>
+            <span className={bold ? "font-semibold" : ""}>
+                {formatINR(value)}
+            </span>
+        </div>
+    );
+}
+
+function Table({ headers, rows, footer }) {
+    return (
+        <table className="w-full border-collapse text-sm">
+            <thead>
+                <tr className="border-b">
+                    {headers.map((h) => (
+                        <th
+                            key={h}
+                            className="text-left font-medium py-2"
+                        >
+                            {h}
+                        </th>
+                    ))}
+                </tr>
+            </thead>
             <tbody>
-                {rows.map((r, i) => (
-                    <tr key={i}>
-                        {r.map((c, j) => (
-                            <td key={j} style={styles.td}>{c}</td>
+                {rows.map((row, i) => (
+                    <tr key={i} className="border-b last:border-0">
+                        {row.map((cell, j) => (
+                            <td key={j} className="py-2">
+                                {cell}
+                            </td>
                         ))}
                     </tr>
                 ))}
             </tbody>
             {footer && (
                 <tfoot>
-                    <tr>
+                    <tr className="border-t font-semibold">
                         {footer.map((f, i) => (
-                            <td key={i} style={styles.tdBold}>{f}</td>
+                            <td key={i} className="py-2">
+                                {f}
+                            </td>
                         ))}
                     </tr>
                 </tfoot>
@@ -180,81 +254,6 @@ function Table({ header, rows, footer }) {
     );
 }
 
-/* ================= PDF-SAFE STYLES ================= */
-
-const styles = {
-    page: {
-        fontFamily: "Arial, sans-serif",
-        fontSize: 12,
-        color: "#000",
-        padding: 40,
-    },
-    title: {
-        fontSize: 26,
-        fontWeight: "bold",
-        textAlign: "center",
-        marginBottom: 4,
-    },
-    subtitle: {
-        textAlign: "center",
-        marginBottom: 20,
-    },
-    meta: {
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: 10,
-    },
-    sectionTitle: {
-        marginTop: 30,
-        marginBottom: 10,
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    kpiRow: {
-        display: "flex",
-        justifyContent: "space-between",
-        margin: "20px 0",
-    },
-    kpi: {
-        border: "1px solid #ccc",
-        padding: 12,
-        width: "30%",
-        textAlign: "center",
-    },
-    kpiLabel: {
-        fontSize: 11,
-        marginBottom: 4,
-    },
-    kpiValue: {
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    table: {
-        width: "100%",
-        borderCollapse: "collapse",
-        marginBottom: 20,
-    },
-    th: {
-        borderBottom: "1px solid #999",
-        textAlign: "left",
-        padding: 6,
-    },
-    td: {
-        borderBottom: "1px solid #ddd",
-        padding: 6,
-    },
-    tdBold: {
-        padding: 6,
-        fontWeight: "bold",
-        borderTop: "2px solid #000",
-    },
-    insight: {
-        marginTop: 10,
-        marginBottom: 20,
-    },
-    footer: {
-        textAlign: "center",
-        marginTop: 40,
-        fontSize: 10,
-    },
-};
+function PageBreak() {
+    return <div className="page-break my-8" />;
+}
