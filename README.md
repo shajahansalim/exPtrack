@@ -1,4 +1,5 @@
-# exPtrack 💰  
+![alt text](https://github.com/shajahansalim/sjx-expense-tracker/blob/dev/exPtrack.png)
+
 ### Modern Personal Finance & Expense Tracking Dashboard
 
 exPtrack is a clean, privacy-first personal finance tracking application that helps users manage **income, expenses, savings, and debt** on a **month-by-month basis**.
