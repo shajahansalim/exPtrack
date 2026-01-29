@@ -1,9 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function DebtModal({ onClose, onSave }) {
+export default function DebtModal({ mode, initialData, onClose, onSave }) {
     const [name, setName] = useState("");
     const [balance, setBalance] = useState("");
     const [paid, setPaid] = useState("");
+
+    useEffect(() => {
+        if (initialData) {
+            setName(initialData.name);
+            setBalance(initialData.balance);
+            setPaid(initialData.paid);
+        }
+    }, [initialData]);
 
     const canSave =
         name.trim() &&
@@ -79,19 +87,13 @@ export default function DebtModal({ onClose, onSave }) {
 
                     <button
                         disabled={!canSave}
-                        onClick={() =>
-                            onSave({
-                                name,
-                                balance,
-                                paid,
-                            })
-                        }
+                        onClick={() => onSave({ name, balance, paid })}
                         className={`rounded-md px-4 py-2 text-sm font-medium text-white ${canSave
-                                ? "bg-red-600 hover:bg-red-700"
-                                : "bg-red-300 cursor-not-allowed"
+                            ? "bg-blue-600 hover:bg-blue-700"
+                            : "bg-blue-300 cursor-not-allowed"
                             }`}
                     >
-                        Add debt
+                        {mode === "edit" ? "Update debt" : "Save debt"}
                     </button>
                 </div>
             </div>

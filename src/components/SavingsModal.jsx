@@ -1,9 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function SavingsModal({ onClose, onSave }) {
+export default function SavingsModal({
+    mode,
+    initialData,
+    onClose,
+    onSave,
+}) {
     const [name, setName] = useState("");
     const [goal, setGoal] = useState("");
     const [saved, setSaved] = useState("");
+
+    // hydrate when editing
+    useEffect(() => {
+        if (initialData) {
+            setName(initialData.name || "");
+            setGoal(initialData.goal || "");
+            setSaved(initialData.saved || "");
+        }
+    }, [initialData]);
 
     const canSave =
         name.trim() &&
@@ -21,43 +35,45 @@ export default function SavingsModal({ onClose, onSave }) {
             >
                 {/* Header */}
                 <div>
-                    <h2 className="text-lg font-semibold">Add savings goal</h2>
+                    <h2 className="text-lg font-semibold">
+                        {mode === "edit" ? "Edit savings goal" : "Add savings goal"}
+                    </h2>
                     <p className="text-sm text-gray-500">
                         Track money you’re setting aside for the future
                     </p>
                 </div>
 
-                {/* Goal name */}
+                {/* Name */}
                 <div>
                     <label className="text-sm font-medium">Goal name</label>
                     <input
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                         placeholder="Emergency fund, Vacation…"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
                 </div>
 
-                {/* Target */}
+                {/* Goal */}
                 <div>
                     <label className="text-sm font-medium">Target amount</label>
                     <input
                         type="number"
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                         placeholder="₹2,00,000"
                         value={goal}
                         onChange={(e) => setGoal(e.target.value)}
                     />
                 </div>
 
-                {/* Monthly contribution */}
+                {/* Saved */}
                 <div>
                     <label className="text-sm font-medium">
                         Amount added this month
                     </label>
                     <input
                         type="number"
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                         placeholder="₹10,000"
                         value={saved}
                         onChange={(e) => setSaved(e.target.value)}
@@ -78,19 +94,13 @@ export default function SavingsModal({ onClose, onSave }) {
 
                     <button
                         disabled={!canSave}
-                        onClick={() =>
-                            onSave({
-                                name,
-                                goal,
-                                saved,
-                            })
-                        }
+                        onClick={() => onSave({ name, goal, saved })}
                         className={`rounded-md px-4 py-2 text-sm font-medium text-white ${canSave
                             ? "bg-blue-600 hover:bg-blue-700"
                             : "bg-blue-300 cursor-not-allowed"
                             }`}
                     >
-                        Save goal
+                        {mode === "edit" ? "Update goal" : "Save goal"}
                     </button>
                 </div>
             </div>

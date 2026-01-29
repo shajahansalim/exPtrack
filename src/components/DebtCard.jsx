@@ -3,13 +3,40 @@ import DebtModal from "./DebtModal";
 import { formatINR } from "../utils/money";
 
 export default function DebtCard({
-    debt,
+    debt = [],
     addDebt,
+    updateDebt,
     deleteDebt,
     totalBalance,
     totalPaid,
 }) {
     const [showModal, setShowModal] = useState(false);
+
+    const [editingItem, setEditingItem] = useState(null);
+
+    const openAdd = () => {
+        setEditingItem(null);
+        setShowModal(true);
+    };
+
+    const openEdit = (item) => {
+        setEditingItem(item);
+        setShowModal(true);
+    };
+
+    const handleSave = (data) => {
+        if (editingItem) {
+            updateDebt(editingItem.id, "name", data.name);
+            updateDebt(editingItem.id, "balance", data.balance);
+            updateDebt(editingItem.id, "paid", data.paid);
+            updateDebt(editingItem.id, "remaining", data.remaining);
+        } else {
+            addDebt(data);
+        }
+        setShowModal(false);
+        setEditingItem(null);
+    };
+
 
     return (
         <section className="bg-white border border-gray-200 rounded-xl p-6">
@@ -23,7 +50,7 @@ export default function DebtCard({
                 </div>
 
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={openAdd}
                     className="text-sm px-3 py-1.5 rounded-lg border hover:bg-gray-50"
                 >
                     + Add debt
@@ -33,12 +60,13 @@ export default function DebtCard({
             {/* Table */}
             {debt.length > 0 && (
                 <div className="mt-6">
-                    <div className="grid grid-cols-5 text-xs font-medium text-slate-500 mb-2">
+                    <div className="grid grid-cols-6 text-xs font-medium text-slate-500 mb-2">
                         <span>Name</span>
                         <span className="text-right">Total</span>
                         <span className="text-right">Paid</span>
                         <span className="text-right">Remaining</span>
-                        <span className="text-right">Action</span>
+                        <span className="text-right">Edit</span>
+                        <span className="text-right">Remove</span>
                     </div>
 
                     {debt.map((item) => {
@@ -47,7 +75,7 @@ export default function DebtCard({
                         return (
                             <div
                                 key={item.id}
-                                className="grid grid-cols-5 items-center py-3 border-b border-gray-100"
+                                className="grid grid-cols-6 items-center py-3 border-b border-gray-100"
                             >
                                 <span className="text-sm">{item.name}</span>
 
@@ -62,6 +90,13 @@ export default function DebtCard({
                                 <span className="text-sm text-right font-medium text-red-600">
                                     {formatINR(remaining)}
                                 </span>
+
+                                <button
+                                    onClick={() => openEdit(item)}
+                                    className="text-sm text-blue-600 text-right hover:underline"
+                                >
+                                    Edit
+                                </button>
 
                                 <button
                                     onClick={() => deleteDebt(item.id)}
@@ -99,11 +134,13 @@ export default function DebtCard({
 
             {showModal && (
                 <DebtModal
-                    onClose={() => setShowModal(false)}
-                    onSave={(data) => {
-                        addDebt(data);
+                    mode={editingItem ? "edit" : "add"}
+                    initialData={editingItem}
+                    onClose={() => {
                         setShowModal(false);
+                        setEditingItem(null);
                     }}
+                    onSave={handleSave}
                 />
             )}
 

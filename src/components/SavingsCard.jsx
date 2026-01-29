@@ -3,15 +3,39 @@ import SavingsModal from "./SavingsModal";
 import { formatINR } from "../utils/money";
 
 export default function SavingsCard({
-    savings,
+    savings = [],
     addSaving,
+    updateSaving,
     deleteSaving,
     totalSaved,
 }) {
     const [showModal, setShowModal] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+
+    const openAdd = () => {
+        setEditingItem(null);
+        setShowModal(true);
+    };
+
+    const openEdit = (item) => {
+        setEditingItem(item);
+        setShowModal(true);
+    };
+
+    const handleSave = (data) => {
+        if (editingItem) {
+            updateSaving(editingItem.id, "name", data.name);
+            updateSaving(editingItem.id, "goal", data.goal);
+            updateSaving(editingItem.id, "saved", data.saved);
+        } else {
+            addSaving(data);
+        }
+        setShowModal(false);
+        setEditingItem(null);
+    };
 
     const totalGoal = savings.reduce(
-        (s, i) => s + Number(i.goal || 0),
+        (sum, s) => sum + Number(s.goal || 0),
         0
     );
 
@@ -27,8 +51,8 @@ export default function SavingsCard({
                 </div>
 
                 <button
-                    onClick={() => setShowModal(true)}
-                    className="text-sm px-3 py-1.5 rounded-lg border hover:bg-gray-50"
+                    onClick={openAdd}
+                    className="text-sm font-medium px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
                 >
                     + Add saving
                 </button>
@@ -37,23 +61,23 @@ export default function SavingsCard({
             {/* Table */}
             {savings.length > 0 && (
                 <div className="mt-6">
-                    <div className="grid grid-cols-5 text-xs font-medium text-slate-500 mb-2">
+                    <div className="grid grid-cols-6 text-xs font-medium text-slate-500 mb-2">
                         <span>Name</span>
                         <span className="text-right">Goal</span>
                         <span className="text-right">Saved</span>
                         <span className="text-right">Remaining</span>
-                        <span className="text-right">Action</span>
+                        <span className="text-right">Edit</span>
+                        <span className="text-right">Remove</span>
                     </div>
 
                     {savings.map((item) => {
-                        const diff = item.saved - item.goal;
-                        const isBehind = diff < 0;
+                        const remaining = item.goal - item.saved;
+                        const isBehind = remaining > 0;
 
                         return (
                             <div
                                 key={item.id}
-                                className={`grid grid-cols-5 items-center py-3 border-b border-gray-100 ${isBehind ? "bg-red-1" : ""
-                                    }`}
+                                className="grid grid-cols-6 items-center py-3 border-b border-gray-100"
                             >
                                 <span className="text-sm">{item.name}</span>
 
@@ -69,8 +93,15 @@ export default function SavingsCard({
                                     className={`text-sm text-right font-medium ${isBehind ? "text-red-600" : "text-green-600"
                                         }`}
                                 >
-                                    {formatINR(diff)}
+                                    {formatINR(remaining)}
                                 </span>
+
+                                <button
+                                    onClick={() => openEdit(item)}
+                                    className="text-sm text-blue-600 text-right hover:underline"
+                                >
+                                    Edit
+                                </button>
 
                                 <button
                                     onClick={() => deleteSaving(item.id)}
@@ -104,18 +135,17 @@ export default function SavingsCard({
             )}
 
             {/* Modal */}
-
-
             {showModal && (
                 <SavingsModal
-                    onClose={() => setShowModal(false)}
-                    onSave={(data) => {
-                        addSaving(data);
+                    mode={editingItem ? "edit" : "add"}
+                    initialData={editingItem}
+                    onClose={() => {
                         setShowModal(false);
+                        setEditingItem(null);
                     }}
+                    onSave={handleSave}
                 />
             )}
-
         </section>
     );
 }

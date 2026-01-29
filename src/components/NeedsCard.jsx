@@ -3,13 +3,37 @@ import NeedsModal from "./NeedsModal";
 import { formatINR } from "../utils/money";
 
 export default function NeedsCard({
-  needs,
+  needs = [],
   addNeed,
+  updateNeed,
   deleteNeed,
   totalBudget,
   totalActual,
 }) {
   const [showModal, setShowModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  const openAdd = () => {
+    setEditingItem(null);
+    setShowModal(true);
+  };
+
+  const openEdit = (item) => {
+    setEditingItem(item);
+    setShowModal(true);
+  };
+
+  const handleSave = (data) => {
+    if (editingItem) {
+      updateNeed(editingItem.id, "name", data.name);
+      updateNeed(editingItem.id, "budget", data.budget);
+      updateNeed(editingItem.id, "actual", data.actual);
+    } else {
+      addNeed(data);
+    }
+    setShowModal(false);
+    setEditingItem(null);
+  };
 
   return (
     <section className="bg-white border border-gray-200 rounded-xl p-6">
@@ -23,8 +47,8 @@ export default function NeedsCard({
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
-          className="text-sm font-medium px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-slate-800"
+          onClick={openAdd}
+          className="text-sm font-medium px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600"
         >
           + Add bill
         </button>
@@ -33,12 +57,13 @@ export default function NeedsCard({
       {/* Table */}
       {needs.length > 0 && (
         <div className="mt-6">
-          <div className="grid grid-cols-5 text-xs font-medium text-slate-500 mb-2">
+          <div className="grid grid-cols-6 text-xs font-medium text-slate-500 mb-2">
             <span>Name</span>
             <span className="text-right">Budget</span>
             <span className="text-right">Actual</span>
             <span className="text-right">Variance</span>
-            <span className="text-right">Action</span>
+            <span className="text-right">Edit</span>
+            <span className="text-right">Remove</span>
           </div>
 
           {needs.map((item) => {
@@ -48,8 +73,7 @@ export default function NeedsCard({
             return (
               <div
                 key={item.id}
-                className={`grid grid-cols-5 items-center py-3 border-b border-gray-100 ${isOver ? "bg-red-50" : ""
-                  }`}
+                className="grid grid-cols-6 items-center py-3 border-b border-gray-100"
               >
                 <span className="text-sm">{item.name}</span>
 
@@ -69,6 +93,13 @@ export default function NeedsCard({
                 </span>
 
                 <button
+                  onClick={() => openEdit(item)}
+                  className="text-sm text-blue-600 text-right hover:underline"
+                >
+                  Edit
+                </button>
+
+                <button
                   onClick={() => deleteNeed(item.id)}
                   className="text-sm text-red-600 text-right hover:underline"
                 >
@@ -83,9 +114,9 @@ export default function NeedsCard({
       {/* Empty state */}
       {needs.length === 0 && (
         <p className="mt-6 text-sm text-slate-500">
-          Track your fixed monthly obligations like rent, utilities, and EMIs.
+          Build your financial safety net and plan for future goals.
           <br />
-          Add your essential bills to understand your minimum monthly spend.
+          Start with an emergency fund or a long-term savings goal.
         </p>
       )}
 
@@ -102,11 +133,13 @@ export default function NeedsCard({
       {/* Modal */}
       {showModal && (
         <NeedsModal
-          onClose={() => setShowModal(false)}
-          onSave={(data) => {
-            addNeed(data); // ✅ CORRECT
+          mode={editingItem ? "edit" : "add"}
+          initialData={editingItem}
+          onClose={() => {
             setShowModal(false);
+            setEditingItem(null);
           }}
+          onSave={handleSave}
         />
       )}
     </section>

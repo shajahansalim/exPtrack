@@ -3,13 +3,38 @@ import WantsModal from "./WantsModal";
 import { formatINR } from "../utils/money";
 
 export default function WantsCard({
-  wants,
+  wants = [],
   addWant,
+  updateWant,
   deleteWant,
   totalBudget,
   totalActual,
 }) {
   const [showModal, setShowModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  const openAdd = () => {
+    setEditingItem(null);
+    setShowModal(true);
+  };
+
+  const openEdit = (item) => {
+    setEditingItem(item);
+    setShowModal(true);
+  };
+
+  const handleSave = (data) => {
+    if (editingItem) {
+      updateWant(editingItem.id, "name", data.name);
+      updateWant(editingItem.id, "budget", data.budget);
+      updateWant(editingItem.id, "actual", data.actual);
+    } else {
+      addWant(data);
+    }
+    setShowModal(false);
+    setEditingItem(null);
+  };
+
 
   return (
     <section className="bg-white border border-gray-200 rounded-xl p-6">
@@ -23,7 +48,7 @@ export default function WantsCard({
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={openAdd}
           className="text-sm font-medium px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
         >
           + Add expense
@@ -33,12 +58,13 @@ export default function WantsCard({
       {/* Table */}
       {wants.length > 0 && (
         <div className="mt-6">
-          <div className="grid grid-cols-5 text-xs font-medium text-slate-500 mb-2">
+          <div className="grid grid-cols-6 text-xs font-medium text-slate-500 mb-2">
             <span>Name</span>
             <span className="text-right">Budget</span>
             <span className="text-right">Actual</span>
             <span className="text-right">Variance</span>
-            <span className="text-right">Action</span>
+            <span className="text-right">Edit</span>
+            <span className="text-right">Remove</span>
           </div>
 
           {wants.map((item) => {
@@ -48,8 +74,8 @@ export default function WantsCard({
             return (
               <div
                 key={item.id}
-                className={`grid grid-cols-5 items-center py-3 border-b border-gray-100 ${isOver ? "bg-red-50" : ""
-                  }`}
+                className="grid grid-cols-6 items-center py-3 border-b border-gray-100"
+
               >
                 <span className="text-sm">{item.name}</span>
 
@@ -67,6 +93,13 @@ export default function WantsCard({
                 >
                   {formatINR(diff)}
                 </span>
+
+                <button
+                  onClick={() => openEdit(item)}
+                  className="text-sm text-blue-600 text-right hover:underline"
+                >
+                  Edit
+                </button>
 
                 <button
                   onClick={() => deleteWant(item.id)}
@@ -102,11 +135,13 @@ export default function WantsCard({
       {/* Modal */}
       {showModal && (
         <WantsModal
-          onClose={() => setShowModal(false)}
-          onSave={(data) => {
-            addWant(data);
+          mode={editingItem ? "edit" : "add"}
+          initialData={editingItem}
+          onClose={() => {
             setShowModal(false);
+            setEditingItem(null);
           }}
+          onSave={handleSave}
         />
       )}
     </section>
