@@ -75,8 +75,8 @@ It is designed with **SaaS-grade UI/UX**, predictable data behavior, and an arch
 ## 🚀 Getting Started
 ```bash
 # Clone the Repository
-git clone https://github.com/your-username/exptrack.git
-cd exptrack
+git@github.com:shajahansalim/sjx-expense-tracker.git
+cd sjx-expense-tracker
 
 #Install Dependencies
 npm install
