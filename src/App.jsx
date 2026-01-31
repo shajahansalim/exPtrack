@@ -157,7 +157,7 @@ export default function App() {
               ‹
             </button>
 
-            <span className="font-medium min-w-[80px] text-center">
+            <span className="font-medium min-w-20 text-center">
               {MONTHS[monthIndex]}
             </span>
 
