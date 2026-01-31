@@ -11,6 +11,37 @@ export default function IncomeCard({
 }) {
   const [open, setOpen] = useState(false);
 
+  // ⭐ NEW — local rows for unsaved items
+  const [localRows, setLocalRows] = useState([]);
+
+  // ⭐ ADD LOCAL ROW ONLY (no backend call)
+  const addLocalRow = () => {
+    setLocalRows((prev) => [
+      ...prev,
+      {
+        id: "temp-" + Date.now(),
+        name: "",
+        expected: "",
+        actual: "",
+        isNew: true,
+      },
+    ]);
+  };
+
+  // ⭐ save new row to backend only after typing
+  const saveLocalRow = async (row) => {
+    await onAdd({
+      name: row.name,
+      expected: toNumber(row.expected),
+      actual: toNumber(row.actual),
+    });
+
+    // remove temp row
+    setLocalRows((prev) => prev.filter((r) => r.id !== row.id));
+  };
+
+  const allRows = [...income, ...localRows];
+
   return (
     <section className="bg-blue-50 border border-blue-200 rounded-xl p-6">
       {/* HEADER */}
@@ -28,10 +59,9 @@ export default function IncomeCard({
         >
           {open ? "Close" : "Edit income"}
         </button>
-
       </div>
 
-      {/* COLLAPSED VIEW */}
+      {/* COLLAPSED */}
       {!open && (
         <div className="flex justify-between items-center text-sm">
           <div>
@@ -43,24 +73,12 @@ export default function IncomeCard({
               {income.length} source{income.length > 1 ? "s" : ""}
             </p>
           </div>
-
-          <span
-            className={`px-3 py-1 rounded-md text-xs ${totalActual >= totalExpected
-              ? "bg-green-50 text-green-700"
-              : "bg-yellow-50 text-yellow-700"
-              }`}
-          >
-            {totalActual >= totalExpected
-              ? "On track"
-              : "Below expected"}
-          </span>
         </div>
       )}
 
       {/* EDIT MODE */}
       {open && (
         <>
-          {/* TABLE HEADINGS */}
           <div className="grid grid-cols-12 gap-3 text-xs text-gray-500 px-2 mb-2">
             <div className="col-span-4">Source</div>
             <div className="col-span-3 text-right">Expected</div>
@@ -69,7 +87,7 @@ export default function IncomeCard({
           </div>
 
           <div className="space-y-2">
-            {income.map((row) => {
+            {allRows.map((row) => {
               const diff =
                 toNumber(row.actual) - toNumber(row.expected);
 
@@ -83,67 +101,83 @@ export default function IncomeCard({
                   <input
                     value={row.name}
                     placeholder="Income source"
-                    onChange={(e) =>
-                      onUpdate(row.id, "name", e.target.value)
-                    }
-                    className="col-span-4 text-sm px-2 py-1 rounded-md
-                               border border-transparent
-                               hover:border-gray-300
-                               focus:border-gray-400 focus:outline-none"
+                    onChange={(e) => {
+                      if (row.isNew) {
+                        setLocalRows((prev) =>
+                          prev.map((r) =>
+                            r.id === row.id
+                              ? { ...r, name: e.target.value }
+                              : r
+                          )
+                        );
+                      } else {
+                        onUpdate(row.id, "name", e.target.value);
+                      }
+                    }}
+                    className="col-span-4 text-sm px-2 py-1 rounded-md border"
                   />
 
                   {/* Expected */}
                   <input
                     type="number"
                     value={row.expected}
-                    onChange={(e) =>
-                      onUpdate(
-                        row.id,
-                        "expected",
-                        e.target.value
-                      )
-                    }
-                    className="col-span-3 text-right text-sm px-2 py-1 rounded-md
-                               border border-transparent
-                               hover:border-gray-300
-                               focus:border-gray-400 focus:outline-none"
+                    onChange={(e) => {
+                      if (row.isNew) {
+                        setLocalRows((prev) =>
+                          prev.map((r) =>
+                            r.id === row.id
+                              ? { ...r, expected: e.target.value }
+                              : r
+                          )
+                        );
+                      } else {
+                        onUpdate(row.id, "expected", e.target.value);
+                      }
+                    }}
+                    className="col-span-3 text-right text-sm px-2 py-1 rounded-md border"
                   />
 
                   {/* Actual */}
                   <input
                     type="number"
                     value={row.actual}
-                    onChange={(e) =>
-                      onUpdate(
-                        row.id,
-                        "actual",
-                        e.target.value
-                      )
-                    }
-                    className="col-span-3 text-right text-sm px-2 py-1 rounded-md
-                               border border-transparent
-                               hover:border-gray-300
-                               focus:border-gray-400 focus:outline-none"
+                    onChange={(e) => {
+                      if (row.isNew) {
+                        setLocalRows((prev) =>
+                          prev.map((r) =>
+                            r.id === row.id
+                              ? { ...r, actual: e.target.value }
+                              : r
+                          )
+                        );
+                      } else {
+                        onUpdate(row.id, "actual", e.target.value);
+                      }
+                    }}
+                    className="col-span-3 text-right text-sm px-2 py-1 rounded-md border"
                   />
 
-                  {/* Diff + Delete */}
+                  {/* Diff */}
                   <div className="col-span-2 flex justify-end items-center gap-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-md ${diff >= 0
-                        ? "bg-green-50 text-green-700"
-                        : "bg-red-50 text-red-700"
-                        }`}
-                    >
+                    <span className="text-xs">
                       {formatINR(diff)}
                     </span>
 
-                    <button
-                      onClick={() => onDelete(row.id)}
-                      className="opacity-0 group-hover:opacity-100
-                                 text-gray-400 hover:text-red-600 transition"
-                    >
-                      −
-                    </button>
+                    {row.isNew ? (
+                      <button
+                        onClick={() => saveLocalRow(row)}
+                        className="text-green-600 text-xs"
+                      >
+                        Save
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onDelete(row.id)}
+                        className="text-red-600 text-xs"
+                      >
+                        −
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -153,15 +187,14 @@ export default function IncomeCard({
           {/* FOOTER */}
           <div className="mt-4 flex justify-between items-center border-t pt-4">
             <button
-              onClick={onAdd}
+              onClick={addLocalRow}
               className="text-sm px-3 py-1.5 rounded-lg border hover:bg-gray-50"
             >
               + Add income source
             </button>
 
             <div className="text-sm font-medium">
-              {formatINR(totalActual)} /{" "}
-              {formatINR(totalExpected)}
+              {formatINR(totalActual)} / {formatINR(totalExpected)}
             </div>
           </div>
         </>

@@ -1,56 +1,80 @@
-import { useEffect, useRef, useState } from "react";
-import { toNumber } from "../utils/money";
+import { useEffect, useState } from "react";
+
+const API = "http://127.0.0.1:8000";
 
 export function useDebt(monthKey) {
-    const STORAGE_KEY = `debt_${monthKey}`;
-    const hydrated = useRef(false);
+    const [debt, setDebt] = useState([]);
 
-    const [debt, setDebt] = useState(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : [];
-    });
-
+    // ================= LOAD =================
     useEffect(() => {
-        hydrated.current = false;
-        const saved = localStorage.getItem(STORAGE_KEY);
-        setDebt(saved ? JSON.parse(saved) : []);
-        hydrated.current = true;
-    }, [STORAGE_KEY]);
+        fetch(`${API}/debt/${monthKey}`)
+            .then(res => res.json())
+            .then(setDebt);
+    }, [monthKey]);
 
-    useEffect(() => {
-        if (!hydrated.current) return;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(debt));
-    }, [debt, STORAGE_KEY]);
+    // ================= ADD =================
+    const addDebt = async (data) => {
+        const res = await fetch(`${API}/debt/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                ...data,
+                month: monthKey,
+                balance: Number(data.balance),
+                paid: Number(data.paid),
+            }),
+        });
 
-    const addDebt = (item) =>
-        setDebt((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                name: item.name || "",
-                balance: toNumber(item.balance),
-                paid: toNumber(item.paid),
-            },
-        ]);
+        const newRow = await res.json();
+        setDebt(prev => [...prev, newRow]);
+    };
 
-    const updateDebt = (id, field, value) =>
-        setDebt((prev) =>
-            prev.map((d) =>
-                d.id === id
-                    ? { ...d, [field]: field === "name" ? value : toNumber(value) }
-                    : d
-            )
+    // ================= UPDATE =================
+    const updateDebt = async (id, field, value) => {
+        const row = debt.find(d => d.id === id);
+
+        const updated = {
+            ...row,
+            [field]: value,
+            month: monthKey,
+        };
+
+        await fetch(`${API}/debt/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updated),
+        });
+
+        setDebt(prev =>
+            prev.map(d => (d.id === id ? updated : d))
         );
+    };
 
-    const deleteDebt = (id) =>
-        setDebt((prev) => prev.filter((d) => d.id !== id));
+    // ================= DELETE =================
+    const deleteDebt = async (id) => {
+        await fetch(`${API}/debt/${id}`, {
+            method: "DELETE",
+        });
+
+        setDebt(prev => prev.filter(d => d.id !== id));
+    };
+
+    const totalBalance = debt.reduce(
+        (s, d) => s + Number(d.balance || 0),
+        0
+    );
+
+    const totalPaid = debt.reduce(
+        (s, d) => s + Number(d.paid || 0),
+        0
+    );
 
     return {
         debt,
         addDebt,
         updateDebt,
         deleteDebt,
-        totalBalance: debt.reduce((s, d) => s + toNumber(d.balance), 0),
-        totalPaid: debt.reduce((s, d) => s + toNumber(d.paid), 0),
+        totalBalance,
+        totalPaid,
     };
 }

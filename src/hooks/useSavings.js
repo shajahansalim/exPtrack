@@ -1,55 +1,74 @@
-import { useEffect, useRef, useState } from "react";
-import { toNumber } from "../utils/money";
+import { useEffect, useState } from "react";
+
+const API = "http://127.0.0.1:8000";
 
 export function useSavings(monthKey) {
-    const STORAGE_KEY = `saving_${monthKey}`;
-    const hydrated = useRef(false);
+    const [savings, setSavings] = useState([]);
 
-    const [savings, setSavings] = useState(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : [];
-    });
-
+    // ================= LOAD =================
     useEffect(() => {
-        hydrated.current = false;
-        const saved = localStorage.getItem(STORAGE_KEY);
-        setSavings(saved ? JSON.parse(saved) : []);
-        hydrated.current = true;
-    }, [STORAGE_KEY]);
+        fetch(`${API}/savings/${monthKey}`)
+            .then(res => res.json())
+            .then(setSavings);
+    }, [monthKey]);
 
-    useEffect(() => {
-        if (!hydrated.current) return;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(savings));
-    }, [savings, STORAGE_KEY]);
+    // ================= ADD =================
+    const addSaving = async (data) => {
+        const res = await fetch(`${API}/savings/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                ...data,
+                month: monthKey,
+                goal: Number(data.goal),
+                saved: Number(data.saved),
+            }),
+        });
 
-    const addSaving = (item) =>
-        setSavings((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                name: item.name || "",
-                goal: toNumber(item.goal),
-                saved: toNumber(item.saved),
-            },
-        ]);
+        const newRow = await res.json();
+        setSavings(prev => [...prev, newRow]);
+    };
 
-    const updateSaving = (id, field, value) =>
-        setSavings((prev) =>
-            prev.map((s) =>
-                s.id === id
-                    ? { ...s, [field]: field === "name" ? value : toNumber(value) }
-                    : s
-            )
+    // ================= UPDATE =================
+    const updateSaving = async (id, field, value) => {
+        const row = savings.find(s => s.id === id);
+
+        const updated = {
+            ...row,
+            [field]: value,
+            month: monthKey,
+        };
+
+        await fetch(`${API}/savings/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updated),
+        });
+
+        setSavings(prev =>
+            prev.map(s => (s.id === id ? updated : s))
         );
+    };
 
-    const deleteSaving = (id) =>
-        setSavings((prev) => prev.filter((s) => s.id !== id));
+    // ================= DELETE =================
+    const deleteSaving = async (id) => {
+        await fetch(`${API}/savings/${id}`, {
+            method: "DELETE",
+        });
+
+        setSavings(prev => prev.filter(s => s.id !== id));
+    };
+
+    const totalSaved = savings.reduce(
+        (s, i) => s + Number(i.saved || 0),
+        0
+    );
 
     return {
         savings,
         addSaving,
         updateSaving,
         deleteSaving,
-        totalSaved: savings.reduce((s, i) => s + toNumber(i.saved), 0),
+        totalSaved,
     };
 }

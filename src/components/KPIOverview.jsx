@@ -33,10 +33,10 @@ export default function KPIOverview({
   needsBudget,
   needsActual,
   wantsActual,
-  totalSavings = 0,
-  totalDebt = 0,
+  totalSavings,
+  totalDebt,
 }) {
-  const totalSpent = needsActual + wantsActual;
+  const totalSpent = needsActual + wantsActual + totalSavings + totalDebt;
   const available = totalIncome - totalSpent;
 
   const allocationPct =

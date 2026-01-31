@@ -9,8 +9,7 @@ import ReportView from "./components/ReportView";
 import { exportPdf } from "./utils/exportPdf";
 
 import { useIncome } from "./hooks/useIncome";
-import { useNeeds } from "./hooks/useNeeds";
-import { useWants } from "./hooks/useWants";
+import { useExpenses } from "./hooks/useExpenses";
 import { useSavings } from "./hooks/useSavings";
 import { useDebt } from "./hooks/useDebt";
 
@@ -45,22 +44,22 @@ export default function App() {
   const income = useIncome(monthKey);
 
   const {
-    needs,
-    addNeed,
-    updateNeed,
-    deleteNeed,
+    expenses: needs,
+    addExpense: addNeed,
+    updateExpense: updateNeed,
+    deleteExpense: deleteNeed,
     totalBudget: needsBudget,
     totalActual: needsActual,
-  } = useNeeds(monthKey);
+  } = useExpenses(monthKey, "need");
 
   const {
-    wants,
-    addWant,
-    updateWant,
-    deleteWant,
+    expenses: wants,
+    addExpense: addWant,
+    updateExpense: updateWant,
+    deleteExpense: deleteWant,
     totalBudget: wantsBudget,
     totalActual: wantsActual,
-  } = useWants(monthKey);
+  } = useExpenses(monthKey, "want");
 
   const {
     savings,
@@ -118,6 +117,12 @@ export default function App() {
     incomeAllocatedPct,
   };
 
+  console.log({
+    needsActual,
+    wantsActual,
+    totalSaved,
+    totalPaid,
+  });
   // ================= UI =================
   return (
     <div className="min-h-screen flex justify-center relative overflow-hidden">
@@ -210,7 +215,7 @@ export default function App() {
           wantsActual={wantsActual}
           incomeAllocatedPct={incomeAllocatedPct}
           totalSavings={totalSaved}
-          totalDebt={outstandingDebt}
+          totalDebt={totalPaid}
           netWorth={netWorth}
         />
 

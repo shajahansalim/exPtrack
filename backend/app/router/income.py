@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app import models, schemas
+from app.security import get_current_user
 
 router = APIRouter(
     prefix="/income",
@@ -25,9 +26,10 @@ def create_income(data: schemas.IncomeCreate, db: Session = Depends(get_db)):
 # GET all incomes for a month
 # ===============================
 @router.get("/{month}")
-def get_income(month: str, db: Session = Depends(get_db)):
+def get_income(month: str, db: Session = Depends(get_db),user = Depends(get_current_user)):
     return db.query(models.Income).filter(
-        models.Income.month == month
+        models.Income.month == month,
+        models.Income.user_id == user.id
     ).all()
 
 

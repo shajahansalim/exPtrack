@@ -46,3 +46,13 @@ class Debt(Base):
     name = Column(String)
     balance = Column(Float)   # total loan
     paid = Column(Float)      # paid amount
+    
+# ================= USER (AUTH) =================
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)    

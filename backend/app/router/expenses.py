@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app import models, schemas
+from app.security import get_current_user
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
@@ -23,10 +24,11 @@ def create_expense(data: schemas.ExpenseCreate, db: Session = Depends(get_db)):
 # GET by month + type
 # =========================
 @router.get("/{month}/{type}")
-def get_expenses(month: str, type: str, db: Session = Depends(get_db)):
+def get_expenses(month: str, type: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     return db.query(models.Expense).filter(
         models.Expense.month == month,
-        models.Expense.type == type
+        models.Expense.type == type,
+        models.Expense.user_id == user.id
     ).all()
 
 # ================= UPDATE =================

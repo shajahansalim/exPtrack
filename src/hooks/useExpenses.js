@@ -1,60 +1,71 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  fetchExpenses,
+  createExpense,
+  updateExpense,
+  deleteExpense,
+} from "../api/expenses";
 import { toNumber } from "../utils/money";
 
-export function useExpenses(monthKey) {
-  const STORAGE_KEY = `expense_${monthKey}`;
-  const hydrated = useRef(false);
+export function useExpenses(monthKey, type) {
+  const [expenses, setExpenses] = useState([]);
 
-  const [expenses, setExpenses] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // 🔹 Load when month changes
+  // LOAD
   useEffect(() => {
-    hydrated.current = false;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    setExpenses(saved ? JSON.parse(saved) : []);
-    hydrated.current = true;
-  }, [STORAGE_KEY]);
+    load();
+  }, [monthKey]);
 
-  // 🔹 Save ONLY after hydration
-  useEffect(() => {
-    if (!hydrated.current) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-  }, [expenses, STORAGE_KEY]);
+  const load = async () => {
+    const data = await fetchExpenses(monthKey, type);
+    setExpenses(data);
+  };
 
-  const addExpense = (item) =>
-    setExpenses((prev) => [
-      {
-        id: crypto.randomUUID(),
-        name: item.name || "",
-        amount: toNumber(item.amount),
-        category: item.category || "general",
-      },
-      ...prev,
-    ]);
+  // CREATE
+  const addExpense = async (item) => {
+    await createExpense({
+      month: monthKey,
+      type,
+      name: item.name,
+      budget: toNumber(item.budget),
+      actual: toNumber(item.actual),
+    });
+    load();
+  };
 
-  const updateExpense = (id, field, value) =>
-    setExpenses((prev) =>
-      prev.map((e) =>
-        e.id === id
-          ? { ...e, [field]: field === "name" ? value : toNumber(value) }
-          : e
-      )
-    );
+  // UPDATE
+  const updateExpenseField = async (id, field, value) => {
+    const row = expenses.find((e) => e.id === id);
 
-  const deleteExpense = (id) =>
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
+    await updateExpense(id, {
+      ...row,
+      [field]: field === "name" ? value : toNumber(value),
+    });
+
+    load();
+  };
+
+  // DELETE
+  const removeExpense = async (id) => {
+    await deleteExpense(id);
+    load();
+  };
+
+  const totalBudget = expenses.reduce(
+    (s, e) => s + toNumber(e.budget),
+    0
+  );
+
+  const totalActual = expenses.reduce(
+    (s, e) => s + toNumber(e.actual),
+    0
+  );
 
   return {
     expenses,
     addExpense,
-    updateExpense,
-    deleteExpense,
-    totalAmount: expenses.reduce(
-      (sum, e) => sum + toNumber(e.amount),
-      0
-    ),
+    updateExpense: updateExpenseField,
+    deleteExpense: removeExpense,
+    totalBudget,
+    totalActual,
   };
 }

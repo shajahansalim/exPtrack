@@ -1,58 +1,87 @@
-import { useEffect, useRef, useState } from "react";
-import { toNumber } from "../utils/money";
+import { useEffect, useState } from "react";
+
+const API = "http://127.0.0.1:8000";
 
 export function useIncome(monthKey) {
-  const STORAGE_KEY = `income_${monthKey}`;
-  const hydrated = useRef(false);
+  const [income, setIncome] = useState([]);
 
-  const [income, setIncome] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
+  // =============================
+  // LOAD FROM BACKEND
+  // =============================
+  const fetchIncome = async () => {
+    try {
+      const res = await fetch(`${API}/income/${monthKey}`);
+      const data = await res.json();
+      setIncome(data);
+    } catch (err) {
+      console.error("Failed to fetch income", err);
+    }
+  };
 
-  // ✅ Re-hydrate when month changes
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    hydrated.current = false;
-    setIncome(saved ? JSON.parse(saved) : []);
-    hydrated.current = true;
-  }, [STORAGE_KEY]);
+    fetchIncome();
+  }, [monthKey]);
 
-  // ✅ Persist only AFTER hydration
-  useEffect(() => {
-    if (!hydrated.current) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(income));
-  }, [income, STORAGE_KEY]);
-
-  const addIncome = (item) =>
-    setIncome((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: item.name || "",
-        expected: toNumber(item.expected),
-        actual: toNumber(item.actual),
+  // =============================
+  // ADD
+  // =============================
+  const addIncome = async (item) => {
+    await fetch(`${API}/income`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    ]);
+      body: JSON.stringify({
+        name: item.name || "",              // MUST exist
+        expected: Number(item.expected ?? 0),
+        actual: Number(item.actual ?? 0),
+        month: monthKey,
+      }),
+    });
 
-  const updateIncome = (id, field, value) =>
-    setIncome((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? { ...i, [field]: field === "name" ? value : toNumber(value) }
-          : i
-      )
-    );
+    fetchIncome();
+  };
+  // =============================
+  // UPDATE
+  // =============================
+  const updateIncome = async (id, field, value) => {
+    const row = income.find((i) => i.id === id);
 
-  const deleteIncome = (id) =>
-    setIncome((prev) => prev.filter((i) => i.id !== id));
+    await fetch(`${API}/income/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...row,
+        [field]: Number(value),
+      }),
+    });
+
+    fetchIncome();
+  };
+
+  // =============================
+  // DELETE
+  // =============================
+  const deleteIncome = async (id) => {
+    await fetch(`${API}/income/${id}`, {
+      method: "DELETE",
+    });
+
+    fetchIncome();
+  };
+
+  // =============================
+  // TOTALS
+  // =============================
+  const totalExpected = income.reduce((s, i) => s + i.expected, 0);
+  const totalActual = income.reduce((s, i) => s + i.actual, 0);
 
   return {
     income,
     addIncome,
     updateIncome,
     deleteIncome,
-    totalExpected: income.reduce((s, i) => s + toNumber(i.expected), 0),
-    totalActual: income.reduce((s, i) => s + toNumber(i.actual), 0),
+    totalExpected,
+    totalActual,
   };
 }

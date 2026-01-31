@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app import models, schemas
+from app.security import get_current_user
 
 router = APIRouter(prefix="/savings", tags=["Savings"])
 
@@ -19,10 +20,10 @@ def create_saving(data: schemas.SavingCreate, db: Session = Depends(get_db)):
 
 # ================= READ BY MONTH =================
 @router.get("/{month}", response_model=list[schemas.SavingResponse])
-def get_savings(month: str, db: Session = Depends(get_db)):
+def get_savings(month: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     return (
         db.query(models.Saving)
-        .filter(models.Saving.month == month)
+        .filter(models.Saving.month == month, models.Saving.user_id == user.id)
         .all()
     )
 
