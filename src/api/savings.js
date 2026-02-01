@@ -1,25 +1,25 @@
 import { apiFetch } from "./client";
 
 // ================= GET =================
-export const fetchExpenses = (month, type) =>
-    apiFetch(`/expenses/${month}/${type}`);
+export const fetchSavings = (month) =>
+    apiFetch(`/savings/${month}`);
 
 // ================= CREATE =================
-export const createExpense = (data) =>
-    apiFetch("/expenses/", {
+export const createSaving = (data) =>
+    apiFetch("/savings/", {
         method: "POST",
         body: JSON.stringify(data),
     });
 
 // ================= UPDATE =================
-export const updateExpense = (id, data) =>
-    apiFetch(`/expenses/${id}`, {
+export const updateSaving = (id, data) =>
+    apiFetch(`/savings/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
     });
 
 // ================= DELETE =================
-export const deleteExpense = (id) =>
-    apiFetch(`/expenses/${id}`, {
+export const deleteSaving = (id) =>
+    apiFetch(`/savings/${id}`, {
         method: "DELETE",
     });

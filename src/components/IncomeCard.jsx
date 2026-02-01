@@ -3,18 +3,27 @@ import { formatINR, toNumber } from "../utils/money";
 
 export default function IncomeCard({
   income,
-  onUpdate,
-  onAdd,
-  onDelete,
-  totalExpected,
-  totalActual,
+  addIncome,
+  updateIncome,
+  deleteIncome,
 }) {
   const [open, setOpen] = useState(false);
 
-  // ⭐ NEW — local rows for unsaved items
+  // local rows for unsaved items
   const [localRows, setLocalRows] = useState([]);
 
-  // ⭐ ADD LOCAL ROW ONLY (no backend call)
+  // ================= TOTALS =================
+  const totalExpected = income.reduce(
+    (s, i) => s + toNumber(i.expected),
+    0
+  );
+
+  const totalActual = income.reduce(
+    (s, i) => s + toNumber(i.actual),
+    0
+  );
+
+  // ================= ADD LOCAL ROW =================
   const addLocalRow = () => {
     setLocalRows((prev) => [
       ...prev,
@@ -28,15 +37,14 @@ export default function IncomeCard({
     ]);
   };
 
-  // ⭐ save new row to backend only after typing
+  // ================= SAVE NEW ROW =================
   const saveLocalRow = async (row) => {
-    await onAdd({
+    await addIncome({
       name: row.name,
       expected: toNumber(row.expected),
       actual: toNumber(row.actual),
     });
 
-    // remove temp row
     setLocalRows((prev) => prev.filter((r) => r.id !== row.id));
   };
 
@@ -94,10 +102,9 @@ export default function IncomeCard({
               return (
                 <div
                   key={row.id}
-                  className="group grid grid-cols-12 gap-3 items-center
-                             px-2 py-2 rounded-lg hover:bg-gray-50"
+                  className="group grid grid-cols-12 gap-3 items-center px-2 py-2 rounded-lg hover:bg-gray-50"
                 >
-                  {/* Name */}
+                  {/* NAME */}
                   <input
                     value={row.name}
                     placeholder="Income source"
@@ -111,13 +118,13 @@ export default function IncomeCard({
                           )
                         );
                       } else {
-                        onUpdate(row.id, "name", e.target.value);
+                        updateIncome(row.id, "name", e.target.value);
                       }
                     }}
                     className="col-span-4 text-sm px-2 py-1 rounded-md border"
                   />
 
-                  {/* Expected */}
+                  {/* EXPECTED */}
                   <input
                     type="number"
                     value={row.expected}
@@ -131,13 +138,13 @@ export default function IncomeCard({
                           )
                         );
                       } else {
-                        onUpdate(row.id, "expected", e.target.value);
+                        updateIncome(row.id, "expected", e.target.value);
                       }
                     }}
                     className="col-span-3 text-right text-sm px-2 py-1 rounded-md border"
                   />
 
-                  {/* Actual */}
+                  {/* ACTUAL */}
                   <input
                     type="number"
                     value={row.actual}
@@ -151,13 +158,13 @@ export default function IncomeCard({
                           )
                         );
                       } else {
-                        onUpdate(row.id, "actual", e.target.value);
+                        updateIncome(row.id, "actual", e.target.value);
                       }
                     }}
                     className="col-span-3 text-right text-sm px-2 py-1 rounded-md border"
                   />
 
-                  {/* Diff */}
+                  {/* DIFF + ACTION */}
                   <div className="col-span-2 flex justify-end items-center gap-2">
                     <span className="text-xs">
                       {formatINR(diff)}
@@ -172,7 +179,7 @@ export default function IncomeCard({
                       </button>
                     ) : (
                       <button
-                        onClick={() => onDelete(row.id)}
+                        onClick={() => deleteIncome(row.id)}
                         className="text-red-600 text-xs"
                       >
                         −

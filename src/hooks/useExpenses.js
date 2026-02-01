@@ -5,60 +5,40 @@ import {
   updateExpense,
   deleteExpense,
 } from "../api/expenses";
-import { toNumber } from "../utils/money";
 
 export function useExpenses(monthKey, type) {
   const [expenses, setExpenses] = useState([]);
 
-  // LOAD
+  const load = async () => {
+    setExpenses(await fetchExpenses(monthKey, type));
+  };
+
   useEffect(() => {
     load();
-  }, [monthKey]);
+  }, [monthKey, type]);
 
-  const load = async () => {
-    const data = await fetchExpenses(monthKey, type);
-    setExpenses(data);
-  };
-
-  // CREATE
-  const addExpense = async (item) => {
+  const addExpense = async (data) => {
     await createExpense({
+      ...data,
       month: monthKey,
       type,
-      name: item.name,
-      budget: toNumber(item.budget),
-      actual: toNumber(item.actual),
     });
     load();
   };
 
-  // UPDATE
   const updateExpenseField = async (id, field, value) => {
-    const row = expenses.find((e) => e.id === id);
-
-    await updateExpense(id, {
-      ...row,
-      [field]: field === "name" ? value : toNumber(value),
-    });
-
+    const row = expenses.find(e => e.id === id);
+    await updateExpense(id, { ...row, [field]: value });
     load();
   };
 
-  // DELETE
   const removeExpense = async (id) => {
     await deleteExpense(id);
     load();
   };
 
-  const totalBudget = expenses.reduce(
-    (s, e) => s + toNumber(e.budget),
-    0
-  );
-
-  const totalActual = expenses.reduce(
-    (s, e) => s + toNumber(e.actual),
-    0
-  );
+  const totalBudget = expenses.reduce((s, e) => s + Number(e.budget || 0), 0);
+  const totalActual = expenses.reduce((s, e) => s + Number(e.actual || 0), 0);
 
   return {
     expenses,

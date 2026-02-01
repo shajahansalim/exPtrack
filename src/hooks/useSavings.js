@@ -1,74 +1,45 @@
 import { useEffect, useState } from "react";
-
-const API = "http://127.0.0.1:8000";
+import {
+    fetchSavings,
+    createSaving,
+    updateSaving,
+    deleteSaving,
+} from "../api/savings";
 
 export function useSavings(monthKey) {
     const [savings, setSavings] = useState([]);
 
-    // ================= LOAD =================
+    const load = async () => {
+        setSavings(await fetchSavings(monthKey));
+    };
+
     useEffect(() => {
-        fetch(`${API}/savings/${monthKey}`)
-            .then(res => res.json())
-            .then(setSavings);
+        load();
     }, [monthKey]);
 
-    // ================= ADD =================
     const addSaving = async (data) => {
-        const res = await fetch(`${API}/savings/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...data,
-                month: monthKey,
-                goal: Number(data.goal),
-                saved: Number(data.saved),
-            }),
-        });
-
-        const newRow = await res.json();
-        setSavings(prev => [...prev, newRow]);
+        await createSaving({ ...data, month: monthKey });
+        load();
     };
 
-    // ================= UPDATE =================
-    const updateSaving = async (id, field, value) => {
+    const updateSavingField = async (id, field, value) => {
         const row = savings.find(s => s.id === id);
-
-        const updated = {
-            ...row,
-            [field]: value,
-            month: monthKey,
-        };
-
-        await fetch(`${API}/savings/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updated),
-        });
-
-        setSavings(prev =>
-            prev.map(s => (s.id === id ? updated : s))
-        );
+        await updateSaving(id, { ...row, [field]: value });
+        load();
     };
 
-    // ================= DELETE =================
-    const deleteSaving = async (id) => {
-        await fetch(`${API}/savings/${id}`, {
-            method: "DELETE",
-        });
-
-        setSavings(prev => prev.filter(s => s.id !== id));
+    const removeSaving = async (id) => {
+        await deleteSaving(id);
+        load();
     };
 
-    const totalSaved = savings.reduce(
-        (s, i) => s + Number(i.saved || 0),
-        0
-    );
+    const totalSaved = savings.reduce((s, i) => s + Number(i.saved || 0), 0);
 
     return {
         savings,
         addSaving,
-        updateSaving,
-        deleteSaving,
+        updateSaving: updateSavingField,
+        deleteSaving: removeSaving,
         totalSaved,
     };
 }

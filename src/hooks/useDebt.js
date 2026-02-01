@@ -1,80 +1,50 @@
 import { useEffect, useState } from "react";
-
-const API = "http://127.0.0.1:8000";
+import { fetchDebt, createDebt, updateDebt, deleteDebt } from "../api/debt";
 
 export function useDebt(monthKey) {
     const [debt, setDebt] = useState([]);
 
-    // ================= LOAD =================
+    const load = async () => {
+        setDebt(await fetchDebt(monthKey));
+    };
+
     useEffect(() => {
-        fetch(`${API}/debt/${monthKey}`)
-            .then(res => res.json())
-            .then(setDebt);
+        load();
     }, [monthKey]);
 
-    // ================= ADD =================
     const addDebt = async (data) => {
-        const res = await fetch(`${API}/debt/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...data,
-                month: monthKey,
-                balance: Number(data.balance),
-                paid: Number(data.paid),
-            }),
-        });
-
-        const newRow = await res.json();
-        setDebt(prev => [...prev, newRow]);
+        await createDebt({ ...data, month: monthKey });
+        load();
     };
 
-    // ================= UPDATE =================
-    const updateDebt = async (id, field, value) => {
+    const updateDebtField = async (id, field, value) => {
         const row = debt.find(d => d.id === id);
-
-        const updated = {
-            ...row,
-            [field]: value,
-            month: monthKey,
-        };
-
-        await fetch(`${API}/debt/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updated),
-        });
-
-        setDebt(prev =>
-            prev.map(d => (d.id === id ? updated : d))
-        );
+        await updateDebt(id, { ...row, [field]: value });
+        load();
     };
 
-    // ================= DELETE =================
-    const deleteDebt = async (id) => {
-        await fetch(`${API}/debt/${id}`, {
-            method: "DELETE",
-        });
-
-        setDebt(prev => prev.filter(d => d.id !== id));
+    const removeDebt = async (id) => {
+        await deleteDebt(id);
+        load();
     };
 
-    const totalBalance = debt.reduce(
-        (s, d) => s + Number(d.balance || 0),
-        0
-    );
 
     const totalPaid = debt.reduce(
         (s, d) => s + Number(d.paid || 0),
         0
     );
 
+    const totalOutstanding = debt.reduce(
+        (s, d) => s + Number(d.balance || 0),
+        0
+    );
+
     return {
         debt,
         addDebt,
-        updateDebt,
-        deleteDebt,
-        totalBalance,
+        updateDebt: updateDebtField,
+        deleteDebt: removeDebt,
         totalPaid,
+        totalOutstanding,
     };
 }

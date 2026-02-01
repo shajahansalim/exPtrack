@@ -7,6 +7,10 @@ from app.router import savings
 from app.router import debt
 from app.router import auth
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+from app.router import month
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -26,6 +30,7 @@ app.include_router(expenses.router)
 app.include_router(savings.router)
 app.include_router(debt.router)
 app.include_router(auth.router)
+app.include_router(month.router)
 
 @app.get("/")
 def home():

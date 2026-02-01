@@ -1,86 +1,46 @@
 import { useEffect, useState } from "react";
-
-const API = "http://127.0.0.1:8000";
+import {
+  fetchIncome,
+  createIncome,
+  updateIncome,
+  deleteIncome,
+} from "../api/income";
 
 export function useIncome(monthKey) {
   const [income, setIncome] = useState([]);
 
-  // =============================
-  // LOAD FROM BACKEND
-  // =============================
-  const fetchIncome = async () => {
-    try {
-      const res = await fetch(`${API}/income/${monthKey}`);
-      const data = await res.json();
-      setIncome(data);
-    } catch (err) {
-      console.error("Failed to fetch income", err);
-    }
+  const load = async () => {
+    setIncome(await fetchIncome(monthKey));
   };
 
   useEffect(() => {
-    fetchIncome();
+    load();
   }, [monthKey]);
 
-  // =============================
-  // ADD
-  // =============================
-  const addIncome = async (item) => {
-    await fetch(`${API}/income`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: item.name || "",              // MUST exist
-        expected: Number(item.expected ?? 0),
-        actual: Number(item.actual ?? 0),
-        month: monthKey,
-      }),
-    });
-
-    fetchIncome();
-  };
-  // =============================
-  // UPDATE
-  // =============================
-  const updateIncome = async (id, field, value) => {
-    const row = income.find((i) => i.id === id);
-
-    await fetch(`${API}/income/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...row,
-        [field]: Number(value),
-      }),
-    });
-
-    fetchIncome();
+  const addIncome = async (data) => {
+    await createIncome({ ...data, month: monthKey });
+    load();
   };
 
-  // =============================
-  // DELETE
-  // =============================
-  const deleteIncome = async (id) => {
-    await fetch(`${API}/income/${id}`, {
-      method: "DELETE",
-    });
-
-    fetchIncome();
+  const updateIncomeField = async (id, field, value) => {
+    const row = income.find(i => i.id === id);
+    await updateIncome(id, { ...row, [field]: value });
+    load();
   };
 
-  // =============================
-  // TOTALS
-  // =============================
-  const totalExpected = income.reduce((s, i) => s + i.expected, 0);
-  const totalActual = income.reduce((s, i) => s + i.actual, 0);
+  const removeIncome = async (id) => {
+    await deleteIncome(id);
+    load();
+  };
+
+  const totalExpected = income.reduce((s, i) => s + Number(i.expected || 0), 0);
+  const totalActual = income.reduce((s, i) => s + Number(i.actual || 0), 0);
 
   return {
     income,
     addIncome,
-    updateIncome,
-    deleteIncome,
+    updateIncome: updateIncomeField,
+    deleteIncome: removeIncome,
     totalExpected,
     totalActual,
   };

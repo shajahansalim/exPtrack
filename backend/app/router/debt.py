@@ -10,8 +10,8 @@ router = APIRouter(prefix="/debt", tags=["Debt"])
 
 # ================= CREATE =================
 @router.post("", response_model=schemas.DebtResponse)
-def create_debt(data: schemas.DebtCreate, db: Session = Depends(get_db)):
-    debt = models.Debt(**data.dict())
+def create_debt(data: schemas.DebtCreate, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    debt = models.Debt(**data.dict(), user_id=user.id)
     db.add(debt)
     db.commit()
     db.refresh(debt)
@@ -30,8 +30,8 @@ def get_debt(month: str, db: Session = Depends(get_db), user = Depends(get_curre
 
 # ================= UPDATE =================
 @router.put("/{id}", response_model=schemas.DebtResponse)
-def update_debt(id: int, data: schemas.DebtCreate, db: Session = Depends(get_db)):
-    debt = db.query(models.Debt).filter(models.Debt.id == id).first()
+def update_debt(id: int, data: schemas.DebtCreate, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    debt = db.query(models.Debt).filter(models.Debt.id == id, models.Debt.user_id == user.id).first()
 
     for key, value in data.dict().items():
         setattr(debt, key, value)
@@ -43,8 +43,8 @@ def update_debt(id: int, data: schemas.DebtCreate, db: Session = Depends(get_db)
 
 # ================= DELETE =================
 @router.delete("/{id}")
-def delete_debt(id: int, db: Session = Depends(get_db)):
-    debt = db.query(models.Debt).filter(models.Debt.id == id).first()
+def delete_debt(id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    debt = db.query(models.Debt).filter(models.Debt.id == id, models.Debt.user_id == user.id).first()
     db.delete(debt)
     db.commit()
 
