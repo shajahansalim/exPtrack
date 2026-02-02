@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
+from pydantic import EmailStr
 
 # ================= INCOME =================
 
@@ -56,3 +57,24 @@ class DebtResponse(DebtCreate):
 
     class Config:
         orm_mode = True
+        
+# ================= USER AUTH =================
+
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: str
+
+    class Config:
+        from_attributes = True

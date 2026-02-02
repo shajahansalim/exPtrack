@@ -1,55 +1,45 @@
-import { useEffect, useRef, useState } from "react";
-import { toNumber } from "../utils/money";
+import { useEffect, useState } from "react";
+import {
+    fetchSavings,
+    createSaving,
+    updateSaving,
+    deleteSaving,
+} from "../api/savings";
 
 export function useSavings(monthKey) {
-    const STORAGE_KEY = `saving_${monthKey}`;
-    const hydrated = useRef(false);
+    const [savings, setSavings] = useState([]);
 
-    const [savings, setSavings] = useState(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : [];
-    });
+    const load = async () => {
+        setSavings(await fetchSavings(monthKey));
+    };
 
     useEffect(() => {
-        hydrated.current = false;
-        const saved = localStorage.getItem(STORAGE_KEY);
-        setSavings(saved ? JSON.parse(saved) : []);
-        hydrated.current = true;
-    }, [STORAGE_KEY]);
+        load();
+    }, [monthKey]);
 
-    useEffect(() => {
-        if (!hydrated.current) return;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(savings));
-    }, [savings, STORAGE_KEY]);
+    const addSaving = async (data) => {
+        await createSaving({ ...data, month: monthKey });
+        load();
+    };
 
-    const addSaving = (item) =>
-        setSavings((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                name: item.name || "",
-                goal: toNumber(item.goal),
-                saved: toNumber(item.saved),
-            },
-        ]);
+    const updateSavingField = async (id, field, value) => {
+        const row = savings.find(s => s.id === id);
+        await updateSaving(id, { ...row, [field]: value });
+        load();
+    };
 
-    const updateSaving = (id, field, value) =>
-        setSavings((prev) =>
-            prev.map((s) =>
-                s.id === id
-                    ? { ...s, [field]: field === "name" ? value : toNumber(value) }
-                    : s
-            )
-        );
+    const removeSaving = async (id) => {
+        await deleteSaving(id);
+        load();
+    };
 
-    const deleteSaving = (id) =>
-        setSavings((prev) => prev.filter((s) => s.id !== id));
+    const totalSaved = savings.reduce((s, i) => s + Number(i.saved || 0), 0);
 
     return {
         savings,
         addSaving,
-        updateSaving,
-        deleteSaving,
-        totalSaved: savings.reduce((s, i) => s + toNumber(i.saved), 0),
+        updateSaving: updateSavingField,
+        deleteSaving: removeSaving,
+        totalSaved,
     };
 }

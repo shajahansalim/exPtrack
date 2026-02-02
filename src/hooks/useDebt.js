@@ -1,56 +1,50 @@
-import { useEffect, useRef, useState } from "react";
-import { toNumber } from "../utils/money";
+import { useEffect, useState } from "react";
+import { fetchDebt, createDebt, updateDebt, deleteDebt } from "../api/debt";
 
 export function useDebt(monthKey) {
-    const STORAGE_KEY = `debt_${monthKey}`;
-    const hydrated = useRef(false);
+    const [debt, setDebt] = useState([]);
 
-    const [debt, setDebt] = useState(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : [];
-    });
+    const load = async () => {
+        setDebt(await fetchDebt(monthKey));
+    };
 
     useEffect(() => {
-        hydrated.current = false;
-        const saved = localStorage.getItem(STORAGE_KEY);
-        setDebt(saved ? JSON.parse(saved) : []);
-        hydrated.current = true;
-    }, [STORAGE_KEY]);
+        load();
+    }, [monthKey]);
 
-    useEffect(() => {
-        if (!hydrated.current) return;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(debt));
-    }, [debt, STORAGE_KEY]);
+    const addDebt = async (data) => {
+        await createDebt({ ...data, month: monthKey });
+        load();
+    };
 
-    const addDebt = (item) =>
-        setDebt((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                name: item.name || "",
-                balance: toNumber(item.balance),
-                paid: toNumber(item.paid),
-            },
-        ]);
+    const updateDebtField = async (id, field, value) => {
+        const row = debt.find(d => d.id === id);
+        await updateDebt(id, { ...row, [field]: value });
+        load();
+    };
 
-    const updateDebt = (id, field, value) =>
-        setDebt((prev) =>
-            prev.map((d) =>
-                d.id === id
-                    ? { ...d, [field]: field === "name" ? value : toNumber(value) }
-                    : d
-            )
-        );
+    const removeDebt = async (id) => {
+        await deleteDebt(id);
+        load();
+    };
 
-    const deleteDebt = (id) =>
-        setDebt((prev) => prev.filter((d) => d.id !== id));
+
+    const totalPaid = debt.reduce(
+        (s, d) => s + Number(d.paid || 0),
+        0
+    );
+
+    const totalOutstanding = debt.reduce(
+        (s, d) => s + Number(d.balance || 0),
+        0
+    );
 
     return {
         debt,
         addDebt,
-        updateDebt,
-        deleteDebt,
-        totalBalance: debt.reduce((s, d) => s + toNumber(d.balance), 0),
-        totalPaid: debt.reduce((s, d) => s + toNumber(d.paid), 0),
+        updateDebt: updateDebtField,
+        deleteDebt: removeDebt,
+        totalPaid,
+        totalOutstanding,
     };
 }
