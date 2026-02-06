@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from .db import Base
 
 
@@ -8,6 +8,7 @@ class Income(Base):
     __tablename__ = "income"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer) 
     month = Column(String, index=True)
     name = Column(String)
     expected = Column(Float)
@@ -19,6 +20,7 @@ class Expense(Base):
     __tablename__ = "expenses"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer) 
     month = Column(String, index=True)
     type = Column(String)  # "need" or "want"
     name = Column(String)
@@ -31,6 +33,7 @@ class Saving(Base):
     __tablename__ = "savings"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer) 
     month = Column(String, index=True)  # "2026-01"
     name = Column(String)
     goal = Column(Float)     # target amount
@@ -42,7 +45,18 @@ class Debt(Base):
     __tablename__ = "debt"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer)
     month = Column(String, index=True)   # "2026-01"
     name = Column(String)
     balance = Column(Float)   # total loan
     paid = Column(Float)      # paid amount
+    
+# ================= USER (AUTH) =================
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)    

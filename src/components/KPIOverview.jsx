@@ -33,18 +33,25 @@ export default function KPIOverview({
   needsBudget,
   needsActual,
   wantsActual,
-  totalSavings = 0,
-  totalDebt = 0,
+  totalSavings,
+  debtPaid,
+  totalDebt,
 }) {
-  const totalSpent = needsActual + wantsActual;
+  const safe = (n) => Number(n || 0);
+
+  const totalSpent =
+    safe(needsActual) +
+    safe(wantsActual) +
+    safe(totalSavings) +
+    safe(debtPaid);
   const available = totalIncome - totalSpent;
 
   const allocationPct =
-    totalIncome > 0
-      ? Math.round((totalSpent / totalIncome) * 100)
+    safe(totalIncome) > 0
+      ? Math.round((totalSpent / safe(totalIncome)) * 100)
       : 0;
 
-  const netWorth = totalSavings - totalDebt;
+  const netWorth = safe(totalSavings) - safe(totalDebt);
 
   return (
     <>
