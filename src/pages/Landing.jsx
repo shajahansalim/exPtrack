@@ -63,7 +63,7 @@ export default function Landing() {
       {/* ================= DASHBOARD PREVIEW ================= */}
       <section className="flex justify-center px-6 mb-24">
         <img
-          src="/exptrack_mockup.png"
+          src="/exPtrack_Mockup.png"
           alt="dashboard"
           className="rounded-3xl shadow-2xl max-w-5xl w-full hover:scale-[1.01] transition"
         />
