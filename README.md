@@ -6,11 +6,9 @@ It is designed with **SaaS-grade UI/UX**, predictable data behavior, and an arch
 
 ## 🛠 Tech Stack
 
-- **Frontend:** React (Hooks-based)
-- **Styling:** Tailwind CSS
-- **State Management:** Custom hooks
-- **Persistence:** LocalStorage (temporary)
-- **PDF Export:** DOM → PDF rendering
+- **Frontend:** React & Tailwind CSS
+- **Backend:** Python + FastAPI
+- **Database:** PostgreSQL
 - **Build Tool:** Vite
 
 ---
@@ -18,8 +16,8 @@ It is designed with **SaaS-grade UI/UX**, predictable data behavior, and an arch
 ## 🚀 Getting Started
 ```bash
 # Clone the Repository
-git@github.com:shajahansalim/sjx-expense-tracker.git
-cd sjx-expense-tracker
+git@github.com:shajahansalim/exPtrack.git
+cd exPtrack
 
 #Install Dependencies
 npm install
@@ -29,3 +27,16 @@ npm run dev
 
 #The application will be available at:
 http://localhost:5173
+
+#Running the backend
+cd backend/
+
+#Installing the dependencies
+pip install -r Requirement.txt
+
+#start the FastAPI server
+uvicorn main.app:app --reload
+
+#The backend will be available at:
+http://localhost:8080
+
