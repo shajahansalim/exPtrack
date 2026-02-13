@@ -11,7 +11,8 @@ import IncomeCard from "./components/IncomeCard";
 import SavingsCard from "./components/SavingsCard";
 import DebtCard from "./components/DebtCard";
 import ReportView from "./components/ReportView";
-import ProfileMenu from "./components/ProfileMenu";
+import RecurringExpensesModal from "./components/RecurringExpensesModal";
+import Navbar from "./components/Navbar";
 
 import { exportPdf } from "./utils/exportPdf";
 import { useAuthUser } from "./hooks/useAuthUser";
@@ -55,9 +56,10 @@ export default function Dashboard() {
 
     const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
-    // ================= COPY MODAL STATE =================
+    // ================= COPY MODAL & NAV STATE =================
     const [showCopyModal, setShowCopyModal] = useState(false);
     const [nextIndex, setNextIndex] = useState(null);
+    const [nextYear, setNextYear] = useState(null);
     const [nextMonthKey, setNextMonthKey] = useState(null);
     const [toast, setToast] = useState("");
     const [isExporting, setIsExporting] = useState(false);
@@ -68,6 +70,17 @@ export default function Dashboard() {
         hasSavings: false,
         hasDebt: false,
     });
+
+    // Month/year picker for direct navigation
+    const [pickerMonth, setPickerMonth] = useState(monthIndex);
+    const [pickerYear, setPickerYear] = useState(year);
+    const [showRecurringModal, setShowRecurringModal] = useState(false);
+
+    // Keep picker in sync with active month/year
+    useEffect(() => {
+        setPickerMonth(monthIndex);
+        setPickerYear(year);
+    }, [monthIndex, year]);
 
     const prevMonth = () => {
         setMonthIndex((i) => {
@@ -110,6 +123,7 @@ export default function Dashboard() {
             // If next month has no data and current month has data, show modal
             if (!hasData && currentHasData) {
                 setNextIndex(nextIdx);
+                setNextYear(targetYear);
                 setNextMonthKey(nextKey);
                 setNextMonthData({
                     hasIncome: income.income.length > 0,
@@ -122,28 +136,25 @@ export default function Dashboard() {
             } else {
                 // No data to copy, just switch months
                 setMonthIndex(nextIdx);
-                if (isDecember) {
-                    setYear((y) => y + 1);
-                }
+                setYear(targetYear);
             }
 
         } catch (err) {
             console.error("Month switch failed:", err);
             setMonthIndex(nextIdx);
-            if (isDecember) {
-                setYear((y) => y + 1);
-            }
+            setYear(targetYear);
         }
     };
 
     const handleConfirmCopy = async (selectedCategories) => {
         if (selectedCategories.length === 0) {
             setShowCopyModal(false);
-            // If we're wrapping from December -> January, bump the year
-            if (monthIndex === 11 && nextIndex === 0) {
-                setYear((y) => y + 1);
+            if (nextIndex !== null) {
+                setMonthIndex(nextIndex);
+                if (nextYear !== null) {
+                    setYear(nextYear);
+                }
             }
-            setMonthIndex(nextIndex);
             return;
         }
 
@@ -153,11 +164,12 @@ export default function Dashboard() {
             setToast(`Copied ${selectedCategories.join(", ")} from previous month`);
             setTimeout(() => setToast(""), 3000);
             setShowCopyModal(false);
-            // If we're wrapping from December -> January, bump the year
-            if (monthIndex === 11 && nextIndex === 0) {
-                setYear((y) => y + 1);
+            if (nextIndex !== null) {
+                setMonthIndex(nextIndex);
+                if (nextYear !== null) {
+                    setYear(nextYear);
+                }
             }
-            setMonthIndex(nextIndex);
         } catch (err) {
             console.error("Copy failed:", err);
             setToast("Failed to copy data. Please try again.");
@@ -167,11 +179,73 @@ export default function Dashboard() {
 
     const handleCancelCopy = () => {
         setShowCopyModal(false);
-        // If we're wrapping from December -> January, bump the year
-        if (monthIndex === 11 && nextIndex === 0) {
-            setYear((y) => y + 1);
+        if (nextIndex !== null) {
+            setMonthIndex(nextIndex);
+            if (nextYear !== null) {
+                setYear(nextYear);
+            }
         }
-        setMonthIndex(nextIndex);
+    };
+
+    const goToSelectedMonth = async () => {
+        const targetIdx = Number(pickerMonth);
+        const targetYr = Number(pickerYear) || year;
+
+        if (
+            Number.isNaN(targetIdx) ||
+            targetIdx < 0 ||
+            targetIdx > 11
+        ) {
+            return;
+        }
+
+        // If already on this month/year, do nothing
+        if (targetIdx === monthIndex && targetYr === year) return;
+
+        const targetKey = `${targetYr}-${String(targetIdx + 1).padStart(2, "0")}`;
+
+        try {
+            // Check if target month has any data
+            const [i, n, w, s, d] = await Promise.all([
+                fetchIncome(targetKey),
+                fetchExpenses(targetKey, "need"),
+                fetchExpenses(targetKey, "want"),
+                fetchSavings(targetKey),
+                fetchDebt(targetKey),
+            ]);
+
+            const hasData =
+                i.length || n.length || w.length || s.length || d.length;
+
+            const currentHasData = income.income.length > 0 ||
+                needs.length > 0 ||
+                wants.length > 0 ||
+                savings.length > 0 ||
+                debt.length > 0;
+
+            if (!hasData && currentHasData) {
+                // Offer to copy current month into target
+                setNextIndex(targetIdx);
+                setNextYear(targetYr);
+                setNextMonthKey(targetKey);
+                setNextMonthData({
+                    hasIncome: income.income.length > 0,
+                    hasNeeds: needs.length > 0,
+                    hasWants: wants.length > 0,
+                    hasSavings: savings.length > 0,
+                    hasDebt: debt.length > 0,
+                });
+                setShowCopyModal(true);
+            } else {
+                // Just switch to target
+                setMonthIndex(targetIdx);
+                setYear(targetYr);
+            }
+        } catch (err) {
+            console.error("Direct month switch failed:", err);
+            setMonthIndex(targetIdx);
+            setYear(targetYr);
+        }
     };
 
     const formatMonthKey = (key) => {
@@ -271,56 +345,38 @@ export default function Dashboard() {
                 hasDebt={nextMonthData.hasDebt}
             />
 
+            <RecurringExpensesModal
+                open={showRecurringModal}
+                onClose={() => setShowRecurringModal(false)}
+            />
+
             <div className="relative z-10 w-full max-w-7xl px-8 py-10 space-y-10">
 
-                {/* ================= HEADER ================= */}
-                <header className="flex items-center justify-between">
-
-                    <span className="text-xl font-bold text-blue-500 cursor-pointer">
-                        exPtrack
-                    </span>
-
-                    <div className="flex items-center gap-3 text-sm">
-
-                        <div className="flex items-center gap-1">
-                            <button onClick={prevMonth} className="h-7 w-7 border rounded">
-                                ‹
-                            </button>
-
-                            <span className="font-medium min-w-24 text-center">
-                                {MONTHS[monthIndex]} {year}
-                            </span>
-
-                            <button onClick={nextMonth} className="h-7 w-7 border rounded">
-                                ›
-                            </button>
-                        </div>
-
-                        <button
-                            onClick={async () => {
-                                setIsExporting(true);
-                                try {
-                                    await exportPdf(`exptrack-${MONTHS[monthIndex]}-${year}.pdf`);
-                                } catch (error) {
-                                    console.error("Export error:", error);
-                                } finally {
-                                    setIsExporting(false);
-                                }
-                            }}
-                            disabled={isExporting}
-                            className="ml-3 px-4 py-2 rounded-md border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isExporting ? "Exporting..." : "Export PDF"}
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm">
-                            Hi, <strong>{user?.name}</strong>
-                        </span>
-                        <ProfileMenu user={user} />
-                    </div>
-                </header>
+                {/* ================= NAVBAR ================= */}
+                <Navbar
+                    monthIndex={monthIndex}
+                    year={year}
+                    onPrevMonth={prevMonth}
+                    onNextMonth={nextMonth}
+                    pickerMonth={pickerMonth}
+                    pickerYear={pickerYear}
+                    onPickerMonthChange={setPickerMonth}
+                    onPickerYearChange={setPickerYear}
+                    onGoToSelectedMonth={goToSelectedMonth}
+                    onExportPdf={async () => {
+                        setIsExporting(true);
+                        try {
+                            await exportPdf(`exptrack-${MONTHS[monthIndex]}-${year}.pdf`);
+                        } catch (error) {
+                            console.error("Export error:", error);
+                        } finally {
+                            setIsExporting(false);
+                        }
+                    }}
+                    isExporting={isExporting}
+                    onRecurringBills={() => setShowRecurringModal(true)}
+                    MONTHS={MONTHS}
+                />
 
                 {/* INCOME */}
                 <IncomeCard {...income} />

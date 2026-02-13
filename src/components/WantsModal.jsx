@@ -4,12 +4,14 @@ export default function WantsModal({ mode, initialData, onClose, onSave }) {
     const [name, setName] = useState("");
     const [budget, setBudget] = useState("");
     const [actual, setActual] = useState("");
+    const [recurring, setRecurring] = useState(false);
 
     useEffect(() => {
         if (initialData) {
             setName(initialData.name);
             setBudget(initialData.budget);
             setActual(initialData.actual);
+            setRecurring(false);
         }
     }, [initialData]);
 
@@ -71,13 +73,32 @@ export default function WantsModal({ mode, initialData, onClose, onSave }) {
                     </p>
                 </div>
 
+                {/* Recurring toggle (add mode only) */}
+                {mode !== "edit" && (
+                    <div className="flex items-center gap-2">
+                        <input
+                            id="wants-recurring"
+                            type="checkbox"
+                            checked={recurring}
+                            onChange={(e) => setRecurring(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <label
+                            htmlFor="wants-recurring"
+                            className="text-xs text-gray-600"
+                        >
+                            Repeat this expense every month
+                        </label>
+                    </div>
+                )}
+
                 <div className="flex justify-end gap-3 pt-2">
                     <button onClick={onClose} className="border px-4 py-2 rounded-md text-sm">
                         Cancel
                     </button>
                     <button
                         disabled={!canSave}
-                        onClick={() => onSave({ name, budget, actual })}
+                        onClick={() => onSave({ name, budget, actual, recurring })}
                         className={`px-4 py-2 rounded-md text-sm text-white ${canSave ? "bg-blue-600" : "bg-blue-300"
                             }`}
                     >

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import WantsModal from "./WantsModal";
 import { formatINR } from "../utils/money";
+import { createRecurringExpense } from "../api/recurring";
 
 export default function WantsCard({
   wants = [],
@@ -23,13 +24,26 @@ export default function WantsCard({
     setShowModal(true);
   };
 
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     if (editingItem) {
       updateWant(editingItem.id, "name", data.name);
       updateWant(editingItem.id, "budget", data.budget);
       updateWant(editingItem.id, "actual", data.actual);
     } else {
-      addWant(data);
+      const { recurring, ...payload } = data;
+      await addWant(payload);
+
+      if (recurring) {
+        try {
+          await createRecurringExpense({
+            name: payload.name,
+            budget: Number(payload.budget),
+            type: "want",
+          });
+        } catch (err) {
+          console.error("Failed to create recurring want", err);
+        }
+      }
     }
     setShowModal(false);
     setEditingItem(null);

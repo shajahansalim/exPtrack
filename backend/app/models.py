@@ -59,4 +59,16 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)    
+    password_hash = Column(String, nullable=False)
+
+
+# ================= RECURRING EXPENSE =================
+
+class RecurringExpense(Base):
+    __tablename__ = "recurring_expenses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer)
+    type = Column(String)  # "need" or "want"
+    name = Column(String)
+    budget = Column(Float)

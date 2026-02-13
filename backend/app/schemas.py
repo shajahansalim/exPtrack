@@ -30,6 +30,23 @@ class ExpenseResponse(ExpenseCreate):
     class Config:
         orm_mode = True
     
+# ================= RECURRING EXPENSE =================
+
+class RecurringExpenseCreate(BaseModel):
+    name: str
+    budget: float
+    type: str  # need | want
+
+
+class RecurringExpenseResponse(RecurringExpenseCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ApplyRecurringRequest(BaseModel):
+    month: str  # "YYYY-MM"
 # ================= SAVINGS =================
 
 class SavingCreate(BaseModel):
