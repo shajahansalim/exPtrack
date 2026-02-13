@@ -1,33 +1,177 @@
-export default function MonthCopyModal({ open, onYes, onNo }) {
+import { useState, useEffect } from "react";
+
+export default function MonthCopyModal({ 
+    open, 
+    onConfirm, 
+    onCancel,
+    fromMonth,
+    toMonth,
+    hasIncome = false,
+    hasNeeds = false,
+    hasWants = false,
+    hasSavings = false,
+    hasDebt = false
+}) {
+    const [selectedCategories, setSelectedCategories] = useState({
+        income: true,
+        expenses: true,
+        savings: true,
+        debt: true,
+    });
+
+    // Reset selections when modal opens
+    useEffect(() => {
+        if (open) {
+            setSelectedCategories({
+                income: hasIncome,
+                expenses: hasNeeds || hasWants,
+                savings: hasSavings,
+                debt: hasDebt,
+            });
+        }
+    }, [open, hasIncome, hasNeeds, hasWants, hasSavings, hasDebt]);
+
     if (!open) return null;
+
+    const handleToggle = (category) => {
+        setSelectedCategories((prev) => ({
+            ...prev,
+            [category]: !prev[category],
+        }));
+    };
+
+    const handleSelectAll = () => {
+        const allSelected = Object.values(selectedCategories).every(Boolean);
+        setSelectedCategories({
+            income: !allSelected && hasIncome,
+            expenses: !allSelected && (hasNeeds || hasWants),
+            savings: !allSelected && hasSavings,
+            debt: !allSelected && hasDebt,
+        });
+    };
+
+    const getSelectedList = () => {
+        const list = [];
+        if (selectedCategories.income) list.push("income");
+        if (selectedCategories.expenses) list.push("expenses");
+        if (selectedCategories.savings) list.push("savings");
+        if (selectedCategories.debt) list.push("debt");
+        return list;
+    };
+
+    const hasAnySelected = Object.values(selectedCategories).some(Boolean);
 
     return (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-            <div className="bg-white rounded-2xl p-8 w-96 shadow-xl text-center">
-
-                <h3 className="text-lg font-semibold mb-4">
+            <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+                <h3 className="text-lg font-semibold mb-2">
                     Copy previous month data?
                 </h3>
 
                 <p className="text-sm text-gray-500 mb-6">
-                    Do you want to copy income, expenses, savings and debt
-                    from last month?
+                    Select which categories to copy from <strong>{fromMonth}</strong> to <strong>{toMonth}</strong>
                 </p>
 
-                <div className="flex gap-4 justify-center">
+                {/* Category Selection */}
+                <div className="space-y-3 mb-6">
+                    <div className="flex items-center justify-between pb-2 border-b">
+                        <span className="text-sm font-medium text-gray-700">Categories</span>
+                        <button
+                            onClick={handleSelectAll}
+                            className="text-xs text-blue-600 hover:underline"
+                        >
+                            {Object.values(selectedCategories).every(Boolean) ? "Deselect All" : "Select All"}
+                        </button>
+                    </div>
+
+                    <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={selectedCategories.income}
+                            onChange={() => handleToggle("income")}
+                            disabled={!hasIncome}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                        <div className="flex-1">
+                            <span className={`text-sm font-medium ${!hasIncome ? "text-gray-400" : ""}`}>
+                                Income
+                            </span>
+                            {!hasIncome && (
+                                <span className="text-xs text-gray-400 ml-2">(No data)</span>
+                            )}
+                        </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={selectedCategories.expenses}
+                            onChange={() => handleToggle("expenses")}
+                            disabled={!hasNeeds && !hasWants}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                        <div className="flex-1">
+                            <span className={`text-sm font-medium ${!hasNeeds && !hasWants ? "text-gray-400" : ""}`}>
+                                Expenses (Needs & Wants)
+                            </span>
+                            {!hasNeeds && !hasWants && (
+                                <span className="text-xs text-gray-400 ml-2">(No data)</span>
+                            )}
+                        </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={selectedCategories.savings}
+                            onChange={() => handleToggle("savings")}
+                            disabled={!hasSavings}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                        <div className="flex-1">
+                            <span className={`text-sm font-medium ${!hasSavings ? "text-gray-400" : ""}`}>
+                                Savings
+                            </span>
+                            {!hasSavings && (
+                                <span className="text-xs text-gray-400 ml-2">(No data)</span>
+                            )}
+                        </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={selectedCategories.debt}
+                            onChange={() => handleToggle("debt")}
+                            disabled={!hasDebt}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                        <div className="flex-1">
+                            <span className={`text-sm font-medium ${!hasDebt ? "text-gray-400" : ""}`}>
+                                Debt
+                            </span>
+                            {!hasDebt && (
+                                <span className="text-xs text-gray-400 ml-2">(No data)</span>
+                            )}
+                        </div>
+                    </label>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-end">
                     <button
-                        onClick={onNo}
-                        className="px-4 py-2 rounded-lg border"
+                        onClick={onCancel}
+                        className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 text-sm font-medium"
                     >
-                        No
+                        Cancel
                     </button>
 
                     <button
-                        onClick={onYes}
-                        className="px-4 py-2 rounded-lg bg-blue-600 text-white"
+                        onClick={() => onConfirm(getSelectedList())}
+                        disabled={!hasAnySelected}
+                        className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
                     >
-                        Yes, copy
+                        Copy Selected
                     </button>
                 </div>
             </div>

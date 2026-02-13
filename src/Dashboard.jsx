@@ -22,6 +22,7 @@ import { useSavings } from "./hooks/useSavings";
 import { useDebt } from "./hooks/useDebt";
 
 import { copyMonth } from "./api/month"; // ⭐ NEW API
+import MonthCopyModal from "./components/MonthCopyModal";
 
 export default function Dashboard() {
 
@@ -48,16 +49,25 @@ export default function Dashboard() {
     // ================= COPY MODAL STATE =================
     const [showCopyModal, setShowCopyModal] = useState(false);
     const [nextIndex, setNextIndex] = useState(null);
+    const [nextMonthKey, setNextMonthKey] = useState(null);
     const [toast, setToast] = useState("");
+    const [nextMonthData, setNextMonthData] = useState({
+        hasIncome: false,
+        hasNeeds: false,
+        hasWants: false,
+        hasSavings: false,
+        hasDebt: false,
+    });
 
     const prevMonth = () =>
         setMonthIndex((i) => (i === 0 ? 11 : i - 1));
 
     const nextMonth = async () => {
-        const nextIndex = monthIndex === 11 ? 0 : monthIndex + 1;
-        const nextKey = `${YEAR}-${String(nextIndex + 1).padStart(2, "0")}`;
+        const nextIdx = monthIndex === 11 ? 0 : monthIndex + 1;
+        const nextKey = `${YEAR}-${String(nextIdx + 1).padStart(2, "0")}`;
 
         try {
+            // Check if next month has any data
             const [i, n, w, s, d] = await Promise.all([
                 fetchIncome(nextKey),
                 fetchExpenses(nextKey, "need"),
@@ -69,32 +79,65 @@ export default function Dashboard() {
             const hasData =
                 i.length || n.length || w.length || s.length || d.length;
 
-            if (!hasData) {
-                await copyMonth(monthKey, nextKey);
-                setToast("Copied previous month data");
-                setTimeout(() => setToast(""), 2500);
-            }
+            // If next month has no data, check if current month has data to copy
+            // Use hook data for current month (already loaded)
+            const currentHasData = income.income.length > 0 || 
+                                   needs.length > 0 || 
+                                   wants.length > 0 || 
+                                   savings.length > 0 || 
+                                   debt.length > 0;
 
-            setMonthIndex(nextIndex);
+            // If next month has no data and current month has data, show modal
+            if (!hasData && currentHasData) {
+                setNextIndex(nextIdx);
+                setNextMonthKey(nextKey);
+                setNextMonthData({
+                    hasIncome: income.income.length > 0,
+                    hasNeeds: needs.length > 0,
+                    hasWants: wants.length > 0,
+                    hasSavings: savings.length > 0,
+                    hasDebt: debt.length > 0,
+                });
+                setShowCopyModal(true);
+            } else {
+                // No data to copy, just switch months
+                setMonthIndex(nextIdx);
+            }
 
         } catch (err) {
             console.error("Month switch failed:", err);
-            setMonthIndex(nextIndex);
+            setMonthIndex(nextIdx);
         }
     };
-    const confirmCopy = async () => {
-        const from = monthKey;
-        const to = `${YEAR}-${String(nextIndex + 1).padStart(2, "0")}`;
 
-        await copyMonth(from, to);
+    const handleConfirmCopy = async (selectedCategories) => {
+        if (selectedCategories.length === 0) {
+            setShowCopyModal(false);
+            setMonthIndex(nextIndex);
+            return;
+        }
 
+        try {
+            await copyMonth(monthKey, nextMonthKey, selectedCategories);
+            setToast(`Copied ${selectedCategories.join(", ")} from previous month`);
+            setTimeout(() => setToast(""), 3000);
+            setShowCopyModal(false);
+            setMonthIndex(nextIndex);
+        } catch (err) {
+            console.error("Copy failed:", err);
+            setToast("Failed to copy data. Please try again.");
+            setTimeout(() => setToast(""), 3000);
+        }
+    };
+
+    const handleCancelCopy = () => {
         setShowCopyModal(false);
         setMonthIndex(nextIndex);
     };
 
-    const skipCopy = () => {
-        setShowCopyModal(false);
-        setMonthIndex(nextIndex);
+    const formatMonthKey = (key) => {
+        const [year, month] = key.split("-");
+        return `${MONTHS[parseInt(month) - 1]} ${year}`;
     };
 
     // ================= HOOKS =================
@@ -176,36 +219,18 @@ export default function Dashboard() {
         <div className="min-h-screen flex justify-center relative overflow-hidden">
 
             {/* COPY MODAL */}
-            {showCopyModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-8 w-96 text-center shadow-xl">
-                        <h3 className="font-semibold mb-4">
-                            Copy previous month data?
-                        </h3>
-
-                        <p className="text-sm text-gray-500 mb-6">
-                            Do you want to copy income, expenses, savings and debt
-                            from last month?
-                        </p>
-
-                        <div className="flex gap-4 justify-center">
-                            <button
-                                onClick={skipCopy}
-                                className="px-4 py-2 rounded-lg border"
-                            >
-                                No
-                            </button>
-
-                            <button
-                                onClick={confirmCopy}
-                                className="px-4 py-2 rounded-lg bg-blue-600 text-white"
-                            >
-                                Yes, copy
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <MonthCopyModal
+                open={showCopyModal}
+                onConfirm={handleConfirmCopy}
+                onCancel={handleCancelCopy}
+                fromMonth={formatMonthKey(monthKey)}
+                toMonth={nextMonthKey ? formatMonthKey(nextMonthKey) : ""}
+                hasIncome={nextMonthData.hasIncome}
+                hasNeeds={nextMonthData.hasNeeds}
+                hasWants={nextMonthData.hasWants}
+                hasSavings={nextMonthData.hasSavings}
+                hasDebt={nextMonthData.hasDebt}
+            />
 
             <div className="relative z-10 w-full max-w-7xl px-8 py-10 space-y-10">
 

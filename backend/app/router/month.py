@@ -10,6 +10,7 @@ router = APIRouter(prefix="/month", tags=["Month"])
 def copy_month(data: dict, db: Session = Depends(get_db)):
     from_month = data["from"]
     to_month = data["to"]
+    categories = data.get("categories", ["income", "expenses", "savings", "debt"])  # Default: copy all
 
     def clone(model):
         rows = db.query(model).filter(model.month == from_month).all()
@@ -22,11 +23,16 @@ def copy_month(data: dict, db: Session = Depends(get_db)):
             new.month = to_month
             db.add(new)
 
-    clone(Income)
-    clone(Expense)
-    clone(Saving)
-    clone(Debt)
+    # Copy selected categories
+    if "income" in categories:
+        clone(Income)
+    if "expenses" in categories:
+        clone(Expense)
+    if "savings" in categories:
+        clone(Saving)
+    if "debt" in categories:
+        clone(Debt)
 
     db.commit()
 
-    return {"message": "copied"}
+    return {"message": "copied", "categories": categories}
