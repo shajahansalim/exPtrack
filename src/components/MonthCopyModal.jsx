@@ -19,7 +19,7 @@ export default function MonthCopyModal({
         debt: true,
     });
 
-    // Reset selections when modal opens
+    // Reset selections when modal opens (only on open change, not on prop changes)
     useEffect(() => {
         if (open) {
             setSelectedCategories({
@@ -29,7 +29,7 @@ export default function MonthCopyModal({
                 debt: hasDebt,
             });
         }
-    }, [open, hasIncome, hasNeeds, hasWants, hasSavings, hasDebt]);
+    }, [open]); // Only reset when modal opens/closes, not when props change
 
     if (!open) return null;
 
@@ -52,10 +52,11 @@ export default function MonthCopyModal({
 
     const getSelectedList = () => {
         const list = [];
-        if (selectedCategories.income) list.push("income");
-        if (selectedCategories.expenses) list.push("expenses");
-        if (selectedCategories.savings) list.push("savings");
-        if (selectedCategories.debt) list.push("debt");
+        // Only include categories that are explicitly selected (true)
+        if (selectedCategories.income === true) list.push("income");
+        if (selectedCategories.expenses === true) list.push("expenses");
+        if (selectedCategories.savings === true) list.push("savings");
+        if (selectedCategories.debt === true) list.push("debt");
         return list;
     };
 
@@ -167,11 +168,20 @@ export default function MonthCopyModal({
                     </button>
 
                     <button
-                        onClick={() => onConfirm(getSelectedList())}
+                        onClick={() => {
+                            const selected = getSelectedList();
+                            console.log("Button clicked - Selected categories:", selected);
+                            console.log("Current selectedCategories state:", selectedCategories);
+                            if (selected.length === 0) {
+                                console.warn("No categories selected!");
+                                return;
+                            }
+                            onConfirm(selected);
+                        }}
                         disabled={!hasAnySelected}
                         className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
                     >
-                        Copy Selected
+                        Copy Selected ({getSelectedList().length})
                     </button>
                 </div>
             </div>

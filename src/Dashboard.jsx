@@ -32,25 +32,35 @@ export default function Dashboard() {
         "July", "August", "September", "October", "November", "December",
     ];
 
-    const YEAR = new Date().getFullYear();
     const ACTIVE_MONTH_KEY = "active_month_index";
+    const ACTIVE_YEAR_KEY = "active_year";
 
     const [monthIndex, setMonthIndex] = useState(() => {
         const saved = localStorage.getItem(ACTIVE_MONTH_KEY);
         return saved !== null ? Number(saved) : new Date().getMonth();
     });
 
+    const [year, setYear] = useState(() => {
+        const saved = localStorage.getItem(ACTIVE_YEAR_KEY);
+        return saved !== null ? Number(saved) : new Date().getFullYear();
+    });
+
     useEffect(() => {
         localStorage.setItem(ACTIVE_MONTH_KEY, monthIndex);
     }, [monthIndex]);
 
-    const monthKey = `${YEAR}-${String(monthIndex + 1).padStart(2, "0")}`;
+    useEffect(() => {
+        localStorage.setItem(ACTIVE_YEAR_KEY, String(year));
+    }, [year]);
+
+    const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
     // ================= COPY MODAL STATE =================
     const [showCopyModal, setShowCopyModal] = useState(false);
     const [nextIndex, setNextIndex] = useState(null);
     const [nextMonthKey, setNextMonthKey] = useState(null);
     const [toast, setToast] = useState("");
+    const [isExporting, setIsExporting] = useState(false);
     const [nextMonthData, setNextMonthData] = useState({
         hasIncome: false,
         hasNeeds: false,
@@ -59,12 +69,22 @@ export default function Dashboard() {
         hasDebt: false,
     });
 
-    const prevMonth = () =>
-        setMonthIndex((i) => (i === 0 ? 11 : i - 1));
+    const prevMonth = () => {
+        setMonthIndex((i) => {
+            if (i === 0) {
+                // Go to December of previous year
+                setYear((y) => y - 1);
+                return 11;
+            }
+            return i - 1;
+        });
+    };
 
     const nextMonth = async () => {
-        const nextIdx = monthIndex === 11 ? 0 : monthIndex + 1;
-        const nextKey = `${YEAR}-${String(nextIdx + 1).padStart(2, "0")}`;
+        const isDecember = monthIndex === 11;
+        const nextIdx = isDecember ? 0 : monthIndex + 1;
+        const targetYear = isDecember ? year + 1 : year;
+        const nextKey = `${targetYear}-${String(nextIdx + 1).padStart(2, "0")}`;
 
         try {
             // Check if next month has any data
@@ -102,26 +122,41 @@ export default function Dashboard() {
             } else {
                 // No data to copy, just switch months
                 setMonthIndex(nextIdx);
+                if (isDecember) {
+                    setYear((y) => y + 1);
+                }
             }
 
         } catch (err) {
             console.error("Month switch failed:", err);
             setMonthIndex(nextIdx);
+            if (isDecember) {
+                setYear((y) => y + 1);
+            }
         }
     };
 
     const handleConfirmCopy = async (selectedCategories) => {
         if (selectedCategories.length === 0) {
             setShowCopyModal(false);
+            // If we're wrapping from December -> January, bump the year
+            if (monthIndex === 11 && nextIndex === 0) {
+                setYear((y) => y + 1);
+            }
             setMonthIndex(nextIndex);
             return;
         }
 
         try {
+            console.log("Copying categories:", selectedCategories);
             await copyMonth(monthKey, nextMonthKey, selectedCategories);
             setToast(`Copied ${selectedCategories.join(", ")} from previous month`);
             setTimeout(() => setToast(""), 3000);
             setShowCopyModal(false);
+            // If we're wrapping from December -> January, bump the year
+            if (monthIndex === 11 && nextIndex === 0) {
+                setYear((y) => y + 1);
+            }
             setMonthIndex(nextIndex);
         } catch (err) {
             console.error("Copy failed:", err);
@@ -132,12 +167,16 @@ export default function Dashboard() {
 
     const handleCancelCopy = () => {
         setShowCopyModal(false);
+        // If we're wrapping from December -> January, bump the year
+        if (monthIndex === 11 && nextIndex === 0) {
+            setYear((y) => y + 1);
+        }
         setMonthIndex(nextIndex);
     };
 
     const formatMonthKey = (key) => {
-        const [year, month] = key.split("-");
-        return `${MONTHS[parseInt(month) - 1]} ${year}`;
+        const [yr, month] = key.split("-");
+        return `${MONTHS[parseInt(month) - 1]} ${yr}`;
     };
 
     // ================= HOOKS =================
@@ -243,25 +282,35 @@ export default function Dashboard() {
 
                     <div className="flex items-center gap-3 text-sm">
 
-                        <button onClick={prevMonth} className="h-7 w-7 border rounded">
-                            ‹
-                        </button>
+                        <div className="flex items-center gap-1">
+                            <button onClick={prevMonth} className="h-7 w-7 border rounded">
+                                ‹
+                            </button>
 
-                        <span className="font-medium min-w-20 text-center">
-                            {MONTHS[monthIndex]}
-                        </span>
+                            <span className="font-medium min-w-24 text-center">
+                                {MONTHS[monthIndex]} {year}
+                            </span>
 
-                        <button onClick={nextMonth} className="h-7 w-7 border rounded">
-                            ›
-                        </button>
+                            <button onClick={nextMonth} className="h-7 w-7 border rounded">
+                                ›
+                            </button>
+                        </div>
 
                         <button
-                            onClick={() =>
-                                exportPdf(`exptrack-${MONTHS[monthIndex]}-${YEAR}.pdf`)
-                            }
-                            className="ml-3 px-4 py-2 rounded-md border"
+                            onClick={async () => {
+                                setIsExporting(true);
+                                try {
+                                    await exportPdf(`exptrack-${MONTHS[monthIndex]}-${year}.pdf`);
+                                } catch (error) {
+                                    console.error("Export error:", error);
+                                } finally {
+                                    setIsExporting(false);
+                                }
+                            }}
+                            disabled={isExporting}
+                            className="ml-3 px-4 py-2 rounded-md border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Export PDF
+                            {isExporting ? "Exporting..." : "Export PDF"}
                         </button>
                     </div>
 
@@ -299,11 +348,11 @@ export default function Dashboard() {
                     <DebtCard {...{ debt, addDebt, updateDebt, deleteDebt, totalBalance, totalPaid }} />
                 </div>
 
-                {/* PDF */}
+                {/* PDF - Hidden but accessible for export */}
                 <div className="hidden">
                     <ReportView
                         month={MONTHS[monthIndex]}
-                        year={YEAR}
+                        year={year}
                         user={user?.name}
                         income={income.income}
                         needs={needs}
