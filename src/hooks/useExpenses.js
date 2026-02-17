@@ -5,11 +5,20 @@ import {
   updateExpense,
   deleteExpense,
 } from "../api/expenses";
+import { applyRecurringExpenses } from "../api/recurring";
 
 export function useExpenses(monthKey, type) {
   const [expenses, setExpenses] = useState([]);
 
   const load = async () => {
+    // For one of the expense types (e.g. "need"), ensure recurring rules are applied.
+    if (type === "need") {
+      try {
+        await applyRecurringExpenses(monthKey);
+      } catch (err) {
+        console.error("Failed to apply recurring expenses", err);
+      }
+    }
     setExpenses(await fetchExpenses(monthKey, type));
   };
 

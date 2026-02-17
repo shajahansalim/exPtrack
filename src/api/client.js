@@ -20,7 +20,9 @@ export async function apiFetch(path, options = {}) {
     });
 
     if (!res.ok) {
-        throw new Error("API error");
+        const errorText = await res.text().catch(() => "Unknown error");
+        console.error(`API error ${res.status}: ${errorText}`);
+        throw new Error(`API error: ${res.status} ${errorText}`);
     }
 
     return res.json();

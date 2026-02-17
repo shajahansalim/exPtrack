@@ -9,6 +9,7 @@ from app.router import auth
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from app.router import month
+from app.router import recurring
 
 load_dotenv()
 
@@ -31,6 +32,7 @@ app.include_router(savings.router)
 app.include_router(debt.router)
 app.include_router(auth.router)
 app.include_router(month.router)
+app.include_router(recurring.router)
 
 @app.get("/")
 def home():

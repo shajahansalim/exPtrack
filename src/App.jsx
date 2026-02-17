@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";      // split login/register page
 import Dashboard from "./Dashboard";
+import Analytics from "./pages/Analytics";
 
 function Protected({ children }) {
   const token = localStorage.getItem("token");
@@ -23,6 +24,14 @@ export default function App() {
         element={
           <Protected>
             <Dashboard />
+          </Protected>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <Protected>
+            <Analytics />
           </Protected>
         }
       />
