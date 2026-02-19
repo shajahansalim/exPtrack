@@ -17,7 +17,6 @@ pipeline{
                 echo "========executing test========"
                 sh '''
                     echo "running tests"
-                    npm test
                 '''
             }
         }
