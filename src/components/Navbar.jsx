@@ -67,7 +67,7 @@ export default function Navbar({
                             >
                                 ‹
                             </button>
-                            <span className="min-w-[100px] text-center text-xs px-2">
+                            <span className="min-w-25 text-center text-xs px-2">
                                 {MONTHS[monthIndex]}/{year}
                             </span>
                             <button
