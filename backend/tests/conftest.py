@@ -31,11 +31,22 @@ def setup_test_db():
 
 @pytest.fixture(scope="function")
 def db():
-    db = TestingSessionLocal()
+    connection = engine.connect()
+    transaction = connection.begin()
+
+    Session = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=connection,
+    )
+    session = Session()
+
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
+        transaction.rollback()
+        connection.close()
 
 
 @pytest.fixture(scope="function")
@@ -44,7 +55,8 @@ def client(db):
         yield db
 
     app.dependency_overrides[get_db] = override_get_db
-    return TestClient(app)
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")
@@ -69,21 +81,3 @@ def auth_headers(client):
     token = res.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
-@pytest.fixture(scope="function")
-def db():
-    connection = engine.connect()
-    transaction = connection.begin()
-
-    Session = sessionmaker(
-        autocommit=False,
-        autoflush=False,
-        bind=connection,
-    )
-    session = Session()
-
-    try:
-        yield session
-    finally:
-        session.close()
-        transaction.rollback()
-        connection.close()
