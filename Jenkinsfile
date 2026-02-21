@@ -14,7 +14,7 @@ pipeline{
                     echo "Installing Dependencies"
                     cd backend
                     python -m venv venv
-                    source venv/Scripts/activate
+                    . venv\\Scripts\\activate || venv/bin/activate
                     pip install -r requirements.txt
                     pip install -r requirements-dev.txt
                     echo "Running tests"\
