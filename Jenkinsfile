@@ -31,8 +31,9 @@ pipeline{
                 sh '''
                     echo "Running tests"
                     ls -al
-                    python --version || python3 --version
+                    cd backend
                     . $VENV/bin/activate || $VENV\\Scripts\\activate
+                    ls -al
                     sleep 10
                     pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
                 '''
