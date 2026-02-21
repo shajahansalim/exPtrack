@@ -12,7 +12,7 @@ pipeline{
                 echo "****** Building backend *******"
                 sh '''
                     echo "Installing Dependencies"
-                    pwd
+                    ls -al
                 '''
             }
         }
