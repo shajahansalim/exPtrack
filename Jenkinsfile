@@ -45,6 +45,16 @@ pipeline {
                 '''
             }
         }
+        stage("Backend: Build Docker Image") {
+            steps {
+                sh '''
+                    set -e
+                    cd backend
+                    docker build -t exptrack-backend:latest .
+                    docker images
+                '''
+            }
+        }
         
     }
     
