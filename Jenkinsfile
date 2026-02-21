@@ -13,7 +13,7 @@ pipeline{
                 sh '''
                     echo "Installing Dependencies"
                     cd backend
-                    pythom -m venv venv
+                    python -m venv venv
                     source venv/Scripts/activate
                     pip install -r requirements.txt
                     pip install -r requirements-dev.txt
