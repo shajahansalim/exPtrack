@@ -1,29 +1,18 @@
 pipeline{
     agent any
     stages{
-        stage("build"){
+        stage("build backend"){
             agent{
                 docker{
-                    image "node:24-alpine3.22"
+                    image "python:3.12-slim"
                     reuseNode true
                 }
             }
             steps{
-                echo "========executing build========"
+                echo "****** Building backend *******"
                 sh '''
-                    node --version
-                    npm --version
-                    npm ci
-                    npm run build
-                    ls -al
-                '''
-            }
-        }
-        stage("test"){
-            steps{
-                echo "========executing test========"
-                sh '''
-                    echo "running tests"
+                    echo "Installing Dependencies"
+                    pwd
                 '''
             }
         }
