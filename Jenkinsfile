@@ -1,43 +1,46 @@
-pipeline{
+pipeline {
     agent any
+
     environment {
         VENV = "venv"
         DATABASE_URL = "sqlite:///./test.db"
         SECRET_KEY = credentials('SECRET_KEY')
     }
 
-    stages{
-        stage("setup backend"){
-            agent{
-                docker{
+    stages {
+
+        stage("Backend: Setup & Test") {
+            agent {
+                docker {
                     image "python:3.12-slim"
                     reuseNode true
                 }
             }
-            steps{
+
+            steps {
                 sh '''
-                    echo "Installing Dependencies"
+                    set -e
                     cd backend
-                    python -m venv $VENV
-                    . $VENV/bin/activate || $VENV\\Scripts\\activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                    pip install -r requirements-dev.txt
+
+                    echo "Creating virtualenv"
+                    python3 -m venv $VENV
+                    . $VENV/bin/activate
+
+                    echo "Installing dependencies"
+                    python3 -m pip install --upgrade pip
+                    python3 -m pip install -r requirements.txt
+                    python3 -m pip install -r requirements-dev.txt
+
+                    echo "Running tests"
+                    python3 -m pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
                 '''
             }
         }
-        stage("test backend"){
-            steps{
-                sh '''
-                    echo "Running tests"
-                    ls -al
-                    cd backend
-                    python -m venv $VENV
-                    . $VENV/bin/activate || $VENV\\Scripts\\activate
-                    ls -al
-                    pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
-                '''
-            }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
