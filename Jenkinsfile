@@ -9,10 +9,17 @@ pipeline{
                 }
             }
             steps{
-                echo "****** Building backend *******"
+                echo "****** Testing backend *******"
                 sh '''
                     echo "Installing Dependencies"
-                    ls -al
+                    cd backend
+                    pythom -m venv venv
+                    source venv/Scripts/activate
+                    pip install -r requirements.txt
+                    pip install -r requirements-dev.txt
+                    echo "Running tests"\
+                    sleep 10
+                    pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
                 '''
             }
         }
