@@ -3,11 +3,11 @@ pipeline{
     environment {
         VENV = "venv"
         DATABASE_URL = "sqlite:///./test.db"
-        SECRET_KEY = "test-secret-key"
+        SECRET_KEY = credentials('SECRET_KEY')
     }
 
     stages{
-        stage("build backend"){
+        stage("setup backend"){
             agent{
                 docker{
                     image "python:3.12-slim"
@@ -15,7 +15,6 @@ pipeline{
                 }
             }
             steps{
-                echo "****** Testing backend *******"
                 sh '''
                     echo "Installing Dependencies"
                     cd backend
@@ -24,7 +23,14 @@ pipeline{
                     pip install --upgrade pip
                     pip install -r requirements.txt
                     pip install -r requirements-dev.txt
-                    echo "Running tests"\
+                '''
+            }
+        }
+        stage("test backend"){
+            steps{
+                sh '''
+                    echo "Running tests"
+                    . $VENV/bin/activate || $VENV\\Scripts\\activate
                     sleep 10
                     pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
                 '''
