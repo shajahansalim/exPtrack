@@ -1,5 +1,9 @@
 pipeline{
     agent any
+    environment {
+        VENV = "venv"
+    }
+
     stages{
         stage("build backend"){
             agent{
@@ -13,8 +17,9 @@ pipeline{
                 sh '''
                     echo "Installing Dependencies"
                     cd backend
-                    python -m venv venv
-                    . venv/Scripts/activate || venv/bin/activate
+                    python -m venv $VENV
+                    . $VENV/bin/activate || $VENV\\Scripts\\activate
+                    pip install --upgrade pip
                     pip install -r requirements.txt
                     pip install -r requirements-dev.txt
                     echo "Running tests"\
