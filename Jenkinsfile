@@ -55,7 +55,24 @@ pipeline {
                 '''
             }
         }
-        
+        stage("Frontend: Test") {
+            steps {
+                sh '''
+                    set -e
+                    npm install
+                    npm run test
+                '''
+            }
+        }
+        stage("Frontend: Build") {
+            steps {
+                sh '''
+                    set -e
+                    npm install
+                    npm run build
+                '''
+            }
+        }
     }
     
     post {
