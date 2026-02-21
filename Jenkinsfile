@@ -2,6 +2,7 @@ pipeline{
     agent any
     environment {
         VENV = "venv"
+        DATABASE_URL = "sqlite:///./test.db"
     }
 
     stages{
