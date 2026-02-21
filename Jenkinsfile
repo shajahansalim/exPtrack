@@ -3,6 +3,7 @@ pipeline{
     environment {
         VENV = "venv"
         DATABASE_URL = "sqlite:///./test.db"
+        SECRET_KEY = "test-secret-key"
     }
 
     stages{
