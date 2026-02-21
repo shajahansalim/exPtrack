@@ -35,7 +35,7 @@ pipeline{
                     . $VENV/bin/activate || $VENV\\Scripts\\activate
                     ls -al
                     sleep 10
-                    python -m pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
+                    python3 -m pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
                 '''
             }
         }
