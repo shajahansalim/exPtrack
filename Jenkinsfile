@@ -9,35 +9,45 @@ pipeline {
 
     stages {
 
-        stage("Backend: Setup & Test") {
+        stage("Backend: Setup") {
             agent {
                 docker {
                     image "python:3.12-slim"
                     reuseNode true
                 }
             }
-
             steps {
                 sh '''
                     set -e
                     cd backend
-
-                    echo "Creating virtualenv"
                     python3 -m venv $VENV
                     . $VENV/bin/activate
-
-                    echo "Installing dependencies"
                     python3 -m pip install --upgrade pip
                     python3 -m pip install -r requirements.txt
                     python3 -m pip install -r requirements-dev.txt
+                '''
+            }
+        }
 
-                    echo "Running tests"
+        stage("Backend: Test") {
+            agent {
+                docker {
+                    image "python:3.12-slim"
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    set -e
+                    cd backend
+                    . $VENV/bin/activate
                     python3 -m pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
                 '''
             }
         }
+        
     }
-
+    
     post {
         always {
             cleanWs()
