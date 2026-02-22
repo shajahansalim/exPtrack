@@ -6,10 +6,7 @@ WORKDIR /app
 
 # copying the files
 
-COPY app .
-
-COPY requirements.txt .
-COPY requirements-dev.txt .
+COPY . .
 
 # installing the dependencies
 

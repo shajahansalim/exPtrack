@@ -6,7 +6,7 @@ __pycache__/
 
 # Virtual env
 venv/
-
+Procfile
 # Tests & coverage
 tests/
 .coverage
