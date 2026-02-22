@@ -61,7 +61,7 @@ export default function KPIOverview({
           Cash flow · This month
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card
             title="Available balance"
             value={formatINR(available)}
@@ -89,6 +89,17 @@ export default function KPIOverview({
             value={formatINR(wantsActual)}
             sub="Optional spending"
             tone="info"
+          />
+
+          <Card
+            title="Debt paid"
+            value={formatINR(debtPaid)}
+            sub={
+              debtPaid > 0
+                ? "This month's repayments"
+                : "No repayments recorded"
+            }
+            tone={debtPaid > 0 ? "positive" : "warning"}
           />
 
           <Card

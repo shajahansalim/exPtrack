@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
+
+# Tests & coverage
+tests/
+.coverage
+htmlcov/
+test.db
+
+# Git
+.git/
+.gitignore
+
+# Frontend / misc
+node_modules/
+dist/
+build/
+
+# Env files
+.env
+.env.*
