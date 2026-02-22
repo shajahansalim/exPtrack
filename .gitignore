@@ -31,3 +31,23 @@ dist-ssr
 .env.production.local
 .env.development.local
 .env
+
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual env
+venv/
+.env
+.env.*
+
+# Testing / coverage
+.coverage
+htmlcov/
+test.db
+
+# IDE
+.vscode/
+.idea/

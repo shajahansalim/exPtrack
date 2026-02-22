@@ -67,8 +67,8 @@ export default function Navbar({
                             >
                                 ‹
                             </button>
-                            <span className="font-medium min-w-[100px] text-center text-sm px-2">
-                                {MONTHS[monthIndex]} {year}
+                            <span className="min-w-25 text-center text-xs px-2">
+                                {MONTHS[monthIndex]}/{year}
                             </span>
                             <button
                                 onClick={onNextMonth}
@@ -165,11 +165,10 @@ function NavLink({ active, onClick, label }) {
     return (
         <button
             onClick={onClick}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                active
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${active
+                ? "bg-blue-500 text-white"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
         >
             {label}
         </button>

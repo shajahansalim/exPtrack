@@ -22,6 +22,7 @@ exPtrack is a full-stack personal finance tracker designed to be clean, minimal,
 - pgBouncer (Transaction Pooler)
 
 
+
 ## Architecture
 
 ![alt text](https://github.com/shajahansalim/sjx-expense-tracker/blob/dev/exPtrack_Architecture.png)
